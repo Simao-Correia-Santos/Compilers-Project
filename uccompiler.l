@@ -69,7 +69,7 @@ scape_sequence "'"\\([nt\\'\"]|[0-7]?[0-7]?[0-7])"'"
 
 {digit}+                                           { printf("NATURAL(%s)\n", yytext); }
 
-(({digit}*"."{digit}+)([eE][+-]?{digit}+)?)|(({digit}+"."?{digit}*)([eE][+-]?{digit}+)?) { printf("DECIMAL(%s)\n", yytext);} 
+((({digit}*"."{digit}+))|(({digit}+"."?{digit}*)))([eE][+-]?{digit}+)? { printf("DECIMAL(%s)\n", yytext);} 
 
 
 {scape_sequence}|"'"[^"\n"']"'"                    { printf("CHRLIT(%s)\n", yytext); }
