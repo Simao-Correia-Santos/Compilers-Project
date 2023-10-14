@@ -66,7 +66,7 @@ error .
 
 {digit}+                                           { printf("NATURAL(%s)\n", yytext); }
 
-{digit}*("."{digit}+?)?([eE][+-]?{digit}+)?        { printf("DECIMAL(%s)\n", yytext); }
+{digit}*("."{digit}+)?("."?[eE][+-]?{digit}+)?        { printf("DECIMAL(%s)\n", yytext); }
 
 "'"\\([nt\\'\"]|[0-7]?[0-7]?[0-7])"'"              { printf("CHRLIT(%s)\n", yytext); }
 "'"[^'"\n"<<EOF>>]*"'"                             { printf("Line %d, column %d: invalid char constant (%s)\n", row, column-yyleng+1, yytext); }
