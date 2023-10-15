@@ -4,7 +4,7 @@ keyword "char"|"else"|"while"|"if"|"int"|"short"|"double"|"return"|"void"
 reserved "++"|"--"|"["|"]"|"auto"|"break"|"case"|"const"|"continue"|"default"|"do"|"enum"|"extern"|"float"|"for"|"goto"|"long"|"register"|"signed"|"sizeof"|"static"|"struct"|"switch"|"typedef"|"union"|"unsigned"|"volatile"|"_Packed"|"_Bool"|"_Complex"|"_Imaginary"|"inline"|"restrict"
 white_spaces " "|"\n"|"\t"|"\r"
 error .
-scape_sequence "'"\\([nt\\'\"]|[0-7]?[0-7]?[0-7])"'"
+scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 
 %{  
     #include <string.h>
@@ -67,11 +67,13 @@ scape_sequence "'"\\([nt\\'\"]|[0-7]?[0-7]?[0-7])"'"
 ")"                                                { printf("RPAR\n"); }
 ";"                                                { printf("SEMI\n"); }
 
+
 ({letter}|"_")+({letter}|{digit}|"_")*             { printf("IDENTIFIER(%s)\n", yytext); }
 
 {digit}+                                           { printf("NATURAL(%s)\n", yytext); }
 
-{digit}*("."{digit}+?)?([eE][+-]?{digit}+)?        { printf("DECIMAL(%s)\n", yytext); }
+(({digit}*"."{digit}+)|({digit}+"."?{digit}*))([eE][+-]?{digit}+)? { printf("DECIMAL(%s)\n", yytext);} 
+
 
 {scape_sequence}|'[^"\n"'\\]'|'\"'                  { printf("CHRLIT(%s)\n", yytext); }
 
@@ -82,6 +84,8 @@ scape_sequence "'"\\([nt\\'\"]|[0-7]?[0-7]?[0-7])"'"
 <CHAR>.                                            { strcat(buffer, yytext); }
 
 {error}                                            { printf("Line %d, column %d: unrecognized character (%s)\n", row, column, yytext);}
+
+
 
 %%
 extern int yylex();
