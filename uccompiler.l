@@ -6,10 +6,13 @@ white_spaces " "|"\n"|"\t"|"\r"
 error .
 scape_sequence "'"\\([nt\\'\"]|[0-7]?[0-7]?[0-7])"'"
 
-%{
+%{  
+    #include <string.h>
+
     int row = 1;
     int column = 0;
-    int row_com, column_com;
+    int row_com, column_com, row_char, column_char;
+    char buffer[1024];
 
     void toUpper(char* string, int len){
         for (int i = 0; i < len; i++){
@@ -70,9 +73,13 @@ scape_sequence "'"\\([nt\\'\"]|[0-7]?[0-7]?[0-7])"'"
 
 {digit}*("."{digit}+?)?([eE][+-]?{digit}+)?        { printf("DECIMAL(%s)\n", yytext); }
 
-{scape_sequence}|"'"[^"\n"']"'"                    { printf("CHRLIT(%s)\n", yytext); }
-"'"[^'"\n"<<EOF>>]*"'"                             { printf("Line %d, column %d: invalid char constant (%s)\n", row, column-yyleng+1, yytext); }
-"'"[^'"\n"<<EOF>>]*["\n"<<EOF>>]                   { printf("Line %d, column %d: unterminated char constant\n", row, column-yyleng+1); column = 0; row += 1; }
+{scape_sequence}|'[^"\n"'\\]'|'\"'                  { printf("CHRLIT(%s)\n", yytext); }
+
+'                                                { BEGIN CHAR; buffer[0] = '\0'; strcat(buffer, yytext); row_char = row; column_char = column; }
+<CHAR>'                                          { BEGIN 0; strcat(buffer, yytext); printf("Line %d, column %d: invalid char constant (%s)\n", row_char, column_char, buffer); }
+<CHAR>["\n"<<EOF>>]                              { BEGIN 0; printf("Line %d, column %d: unterminated char constant\n", row_char, column_char); column = 0; row += 1; }
+<CHAR>\\['\\\"]                                    { strcat(buffer, yytext); }
+<CHAR>.                                            { strcat(buffer, yytext); }
 
 {error}                                            { printf("Line %d, column %d: unrecognized character (%s)\n", row, column, yytext);}
 
