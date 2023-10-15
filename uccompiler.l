@@ -75,11 +75,12 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 (({digit}*"."{digit}+)|({digit}+"."?{digit}*))([eE][+-]?{digit}+)? { printf("DECIMAL(%s)\n", yytext);} 
 
 
-{scape_sequence}|'[^"\n"'\\]'|'\"'                  { printf("CHRLIT(%s)\n", yytext); }
+{scape_sequence}|'[^"\n"'\\]'|'\"'                 { printf("CHRLIT(%s)\n", yytext); }
 
-'                                                { BEGIN CHAR; buffer[0] = '\0'; strcat(buffer, yytext); row_char = row; column_char = column; }
-<CHAR>'                                          { BEGIN 0; strcat(buffer, yytext); printf("Line %d, column %d: invalid char constant (%s)\n", row_char, column_char, buffer); }
-<CHAR>["\n"<<EOF>>]                              { BEGIN 0; printf("Line %d, column %d: unterminated char constant\n", row_char, column_char); column = 0; row += 1; }
+'                                                  { BEGIN CHAR; buffer[0] = '\0'; strcat(buffer, yytext); row_char = row; column_char = column; }
+<CHAR>'                                            { BEGIN 0; strcat(buffer, yytext); printf("Line %d, column %d: invalid char constant (%s)\n", row_char, column_char, buffer); }
+<CHAR><<EOF>>                                      { printf("Line %d, column %d: unterminated char constant\n", row_char, column_char); BEGIN 0; }
+<CHAR>"\n"                                         { printf("Line %d, column %d: unterminated char constant\n", row_char, column_char); column = 0; row += 1; BEGIN 0; }
 <CHAR>\\['\\\"]                                    { strcat(buffer, yytext); }
 <CHAR>.                                            { strcat(buffer, yytext); }
 
