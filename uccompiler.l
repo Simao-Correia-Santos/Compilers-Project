@@ -4,7 +4,7 @@ keyword "char"|"else"|"while"|"if"|"int"|"short"|"double"|"return"|"void"
 reserved "++"|"--"|"["|"]"|"auto"|"break"|"case"|"const"|"continue"|"default"|"do"|"enum"|"extern"|"float"|"for"|"goto"|"long"|"register"|"signed"|"sizeof"|"static"|"struct"|"switch"|"typedef"|"union"|"unsigned"|"volatile"|"_Packed"|"_Bool"|"_Complex"|"_Imaginary"|"inline"|"restrict"
 white_spaces " "|"\n"|"\t"|"\r"
 error .
-scape_sequence "'"\\([nt\\'\"]|[0-7]?[0-7]?[0-7])"'"
+scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 
 %{
     int row = 1;
@@ -69,12 +69,13 @@ scape_sequence "'"\\([nt\\'\"]|[0-7]?[0-7]?[0-7])"'"
 
 {digit}+                                           { printf("NATURAL(%s)\n", yytext); }
 
-((({digit}*"."{digit}+))|(({digit}+"."?{digit}*)))([eE][+-]?{digit}+)? { printf("DECIMAL(%s)\n", yytext);} 
+(({digit}*"."{digit}+)|({digit}+"."?{digit}*))([eE][+-]?{digit}+)? { printf("DECIMAL(%s)\n", yytext);} 
 
 
-{scape_sequence}|"'"[^"\n"']"'"                    { printf("CHRLIT(%s)\n", yytext); }
-"'"[^'"\n"<<EOF>>]*"'"                             { printf("Line %d, column %d: invalid char constant (%s)\n", row, column-yyleng+1, yytext); }
-"'"[^'"\n"<<EOF>>]*["\n"<<EOF>>]                   { printf("Line %d, column %d: unterminated char constant\n", row, column-yyleng+1); column = 0; row += 1; }
+{scape_sequence}|'[^'"\n"]'                        { printf("CHRLIT(%s)\n", yytext); }
+'[^'"\n"<<EOF>>]*'                                 { printf("Line %d, column %d: invalid char constant (%s)\n", row, column-yyleng+1, yytext); }
+'[^'"\n"<<EOF>>]*["\n"<<EOF>>]                     { printf("Line %d, column %d: unterminated char constant\n", row, column-yyleng+1); column = 0; row += 1; }
+
 {error}                                            { printf("Line %d, column %d: unrecognized character (%s)\n", row, column, yytext);}
 
 
