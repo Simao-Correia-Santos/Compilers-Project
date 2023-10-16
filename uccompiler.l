@@ -2,7 +2,7 @@ digit [0-9]
 letter [a-zA-Z]
 keyword "char"|"else"|"while"|"if"|"int"|"short"|"double"|"return"|"void"
 reserved "++"|"--"|"["|"]"|"auto"|"break"|"case"|"const"|"continue"|"default"|"do"|"enum"|"extern"|"float"|"for"|"goto"|"long"|"register"|"signed"|"sizeof"|"static"|"struct"|"switch"|"typedef"|"union"|"unsigned"|"volatile"|"_Packed"|"_Bool"|"_Complex"|"_Imaginary"|"inline"|"restrict"
-white_spaces " "|"\n"|"\t"|"\r"|"\r\n"
+white_spaces " "|"\n"|"\t"|"\r"|"\n\r"
 error .
 scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 
