@@ -2218,7 +2218,7 @@ void yyfree (void * ptr )
 
 extern int yylex();
 int main(int argc, char const *argv[]) {
-    if (strcmp(argv[1], "-l") == 0){
+    if (argc > 1 && strcmp(argv[1], "-l") == 0){
         tokens = 1;
     }
     yylex();    /* run the lexical analysis automaton */
