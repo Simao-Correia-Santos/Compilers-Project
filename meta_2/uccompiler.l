@@ -1,6 +1,5 @@
 digit [0-9]
 letter [a-zA-Z]
-keyword "char"|"else"|"while"|"if"|"int"|"short"|"double"|"return"|"void"
 reserved "++"|"--"|"["|"]"|"auto"|"break"|"case"|"const"|"continue"|"default"|"do"|"enum"|"extern"|"float"|"for"|"goto"|"long"|"register"|"signed"|"sizeof"|"static"|"struct"|"switch"|"typedef"|"union"|"unsigned"|"volatile"|"_Packed"|"_Bool"|"_Complex"|"_Imaginary"|"inline"|"restrict"
 white_spaces " "|"\n"|"\t"|"\r"|"\n\r"
 error .
@@ -43,7 +42,15 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 
 {reserved}                                         { if(tokens) printf("RESERVED(%s)\n", yytext); }
 
-{keyword}                                          { toUpper(yytext, yyleng); printf("%s\n", yytext); }
+"char"                                             { toUpper(yytext, yyleng); printf("%s\n", yytext); return CHAR; }
+"else"                                             { toUpper(yytext, yyleng); printf("%s\n", yytext); return ELSE; }
+"while"                                            { toUpper(yytext, yyleng); printf("%s\n", yytext); return WHILE; }
+"if"                                               { toUpper(yytext, yyleng); printf("%s\n", yytext); return IF; }
+"int"                                              { toUpper(yytext, yyleng); printf("%s\n", yytext); return INT; }
+"short"                                            { toUpper(yytext, yyleng); printf("%s\n", yytext); return SHORT; }
+"double"                                           { toUpper(yytext, yyleng); printf("%s\n", yytext); return DOUBLE; }
+"return"                                           { toUpper(yytext, yyleng); printf("%s\n", yytext); return RETURN; }
+"void"                                             { toUpper(yytext, yyleng); printf("%s\n", yytext); return VOID; }
 
 "&"                                                { if(tokens) printf("BITWISEAND\n"); return BITWISEAND; }
 "|"                                                { if(tokens) printf("BITWISEOR\n"); return BITWISEOR; }
