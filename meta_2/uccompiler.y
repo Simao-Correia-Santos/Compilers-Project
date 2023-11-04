@@ -25,7 +25,10 @@
 
 
 %%
-FuctionsAndDeclarations: FuctionsAndDeclarations FuctionDefinition {;}
+FuctionsAndDeclarations: FuctionsAndDeclarations FuctionDefinition {$$ = program = newnode(FuctionsAndDeclarations, NULL);
+                                                                      struct node *function = newnode(Function, NULL);
+                                                                      addchild(function, newnode(FuctionDefinition, $2));
+                                                                      addchild($$, function);}
                         |FuctionsAndDeclarations FuctionDeclaration {;}
                         |FuctionsAndDeclarations Declaration {;}
                         |FuctionDefinition {;}
