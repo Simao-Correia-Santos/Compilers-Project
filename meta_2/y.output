@@ -87,10 +87,10 @@ Grammar
    59     | MINUS Expr
    60     | NOT Expr
    61     | IDENTIFIER LPAR RPAR
-   62     | IDENTIFIER LPAR AuxExpr RPAR
+   62     | IDENTIFIER LPAR Expr_comma RPAR
 
-   63 AuxExpr: AuxExpr COMMA Expr
-   64        | Expr
+   63 Expr_comma: Expr_comma COMMA Expr
+   64           | Expr
 
    65 Expr: IDENTIFIER
    66     | NATURAL
@@ -192,7 +192,7 @@ Nonterminals, with rules where they appear
     Expr (56)
         on left: 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 65 66 67 68 69
         on right: 28 30 35 36 37 38 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 63 64 69
-    AuxExpr (57)
+    Expr_comma (57)
         on left: 63 64
         on right: 62 63
 
@@ -515,7 +515,7 @@ State 27
 State 28
 
    61 Expr: IDENTIFIER • LPAR RPAR
-   62     | IDENTIFIER • LPAR AuxExpr RPAR
+   62     | IDENTIFIER • LPAR Expr_comma RPAR
    65     | IDENTIFIER •
 
     LPAR  shift, and go to state 53
@@ -939,7 +939,7 @@ State 52
 State 53
 
    61 Expr: IDENTIFIER LPAR • RPAR
-   62     | IDENTIFIER LPAR • AuxExpr RPAR
+   62     | IDENTIFIER LPAR • Expr_comma RPAR
 
     LPAR        shift, and go to state 24
     MINUS       shift, and go to state 25
@@ -951,8 +951,8 @@ State 53
     NATURAL     shift, and go to state 30
     CHRLIT      shift, and go to state 31
 
-    Expr     go to state 88
-    AuxExpr  go to state 89
+    Expr        go to state 88
+    Expr_comma  go to state 89
 
 
 State 54
@@ -1457,7 +1457,7 @@ State 88
    55     | Expr • GE Expr
    56     | Expr • LT Expr
    57     | Expr • GT Expr
-   64 AuxExpr: Expr •
+   64 Expr_comma: Expr •
 
     BITWISEAND  shift, and go to state 54
     BITWISEOR   shift, and go to state 55
@@ -1478,28 +1478,28 @@ State 88
     OR          shift, and go to state 70
     PLUS        shift, and go to state 71
 
-    COMMA     [reduce using rule 64 (AuxExpr)]
-    $default  reduce using rule 64 (AuxExpr)
+    COMMA     [reduce using rule 64 (Expr_comma)]
+    $default  reduce using rule 64 (Expr_comma)
 
     shift/reduce conflict on token COMMA:
-       64 AuxExpr: Expr •
+       64 Expr_comma: Expr •
        41 Expr: Expr • COMMA Expr
       Example: Expr • COMMA Expr
       Shift derivation
-        AuxExpr
+        Expr_comma
         ↳ 64: Expr
               ↳ 41: Expr • COMMA Expr
       Reduce derivation
-        AuxExpr
-        ↳ 63: AuxExpr      COMMA Expr
+        Expr_comma
+        ↳ 63: Expr_comma   COMMA Expr
               ↳ 64: Expr •
 
 
 
 State 89
 
-   62 Expr: IDENTIFIER LPAR AuxExpr • RPAR
-   63 AuxExpr: AuxExpr • COMMA Expr
+   62 Expr: IDENTIFIER LPAR Expr_comma • RPAR
+   63 Expr_comma: Expr_comma • COMMA Expr
 
     COMMA  shift, and go to state 114
     RPAR   shift, and go to state 115
@@ -2230,7 +2230,7 @@ State 113
 
 State 114
 
-   63 AuxExpr: AuxExpr COMMA • Expr
+   63 Expr_comma: Expr_comma COMMA • Expr
 
     LPAR        shift, and go to state 24
     MINUS       shift, and go to state 25
@@ -2246,7 +2246,7 @@ State 114
 
 State 115
 
-   62 Expr: IDENTIFIER LPAR AuxExpr RPAR •
+   62 Expr: IDENTIFIER LPAR Expr_comma RPAR •
 
     $default  reduce using rule 62 (Expr)
 
@@ -2316,7 +2316,7 @@ State 118
    55     | Expr • GE Expr
    56     | Expr • LT Expr
    57     | Expr • GT Expr
-   63 AuxExpr: AuxExpr COMMA Expr •
+   63 Expr_comma: Expr_comma COMMA Expr •
 
     BITWISEAND  shift, and go to state 54
     BITWISEOR   shift, and go to state 55
@@ -2336,7 +2336,7 @@ State 118
     OR          shift, and go to state 70
     PLUS        shift, and go to state 71
 
-    $default  reduce using rule 63 (AuxExpr)
+    $default  reduce using rule 63 (Expr_comma)
 
 
 State 119

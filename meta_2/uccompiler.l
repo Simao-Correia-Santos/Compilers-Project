@@ -8,13 +8,18 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 %{  
     #include <string.h>
     #include "y.tab.h"
+    #include "ast.h"
     int yyparse(void);
 
+    int syntax_errors = 0;
+    int syntax_row = 0;
+    int syntax_column = 1;
     int tokens = 0;
     int row = 1;
     int column = 0;
     int row_com, column_com, row_char, column_char;
     char buffer[1024];
+    extern struct node *program;
 
     void toUpper(char* string, int len){
         for (int i = 0; i < len; i++){
@@ -22,7 +27,7 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
         }
     }
 
-    #define YY_USER_ACTION { column += yyleng; }
+    #define YY_USER_ACTION { column += yyleng; syntax_row = row; syntax_column = column; }
 %}
 
 %X CHAR COMMENT_1 COMMENT_2
@@ -100,13 +105,25 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 
 %%
 extern int yylex();
+
+void yyerror(char *error) {
+    sintax_errors++;
+    printf("Line %d, column %d: %s: %s\n", syntax_row, syntax_column, error, yytext);
+}
+
 int main(int argc, char const *argv[]) {
     if (argc > 1 && strcmp(argv[1], "-l") == 0){
         tokens = 1;
+        yylex();
     }
-    yylex();    /* run the lexical analysis automaton */
+    if (argc > 1 && strcmp(argv[1], "-t") == 0){
+        yyparse();
+        if (syntax_errors == 0){
+            show_ast_tree(program, 0);
+        }
+    }
+    if (argc == 1){
+        yyparse();
+    }    
     return 0;
-}
-int yywrap() {  /* called on EOF, return 1 to terminate */
-    return 1;
 }

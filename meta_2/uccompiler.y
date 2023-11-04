@@ -1,8 +1,9 @@
 %{
   #include <stdio.h>
+  #include "ast.h"
   extern int yylex(void);
   void yyerror(char *);
-  extern char *yytext;
+  struct node *program;
 %}
 
 %token BITWISEAND BITWISEOR BITWISEXOR AND ASSIGN MUL COMMA DIV EQ GE GT LBRACE LE LPAR LT MINUS MOD NE NOT OR PLUS RBRACE RPAR SEMI
@@ -92,7 +93,7 @@ Statement: RETURN Expr SEMI {;}
           |RETURN SEMI {;}
           ;
 
-Expr: Expr ASSIGN  Expr {;}
+Expr: Expr ASSIGN Expr {;}
      |Expr COMMA Expr {;}
      ;
 
@@ -124,11 +125,12 @@ Expr: PLUS Expr {;}
      ;
 
 Expr: IDENTIFIER LPAR RPAR {;}
-     |IDENTIFIER LPAR AuxExpr RPAR {;}
+     |IDENTIFIER LPAR Expr_comma RPAR {;}
+     ;
 
-AuxExpr: AuxExpr COMMA Expr {;}
-        |Expr {;}
-        ;
+Expr_comma: Expr_comma COMMA Expr {;}
+           |Expr {;}
+           ;
 
 Expr: IDENTIFIER {;}
      |NATURAL {;}
@@ -136,9 +138,3 @@ Expr: IDENTIFIER {;}
      |DECIMAL {;}
      |LPAR Expr RPAR {;}
      ;
-
-
-%%
-void yyerror(char *error) {
-    printf("%s '%s'\n", error, yytext);
-}
