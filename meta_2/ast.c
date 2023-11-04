@@ -144,5 +144,32 @@ void get_category_name(int pos, char *category_buffer){
         case 31:
             strcpy(category_buffer, "Null");
             break;
+        case 32:
+            strcpy(category_buffer, "Char");
+            break;
+        case 33:
+            strcpy(category_buffer, "Chrlit");
+            break;
+        case 34:
+            strcpy(category_buffer, "Identifier");
+            break;
+        case 35:
+            strcpy(category_buffer, "Int");
+            break;
+        case 36:
+            strcpy(category_buffer, "Short");
+            break;
+        case 37:
+            strcpy(category_buffer, "Natural");
+            break;
+        case 38:
+            strcpy(category_buffer, "Double");
+            break;
+        case 39:
+            strcpy(category_buffer, "Decimal");
+            break;
+        case 40:
+            strcpy(category_buffer, "Void");
+            break;
     }
 }
