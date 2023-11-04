@@ -670,14 +670,14 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    28,    28,    29,    30,    31,    32,    33,    36,    38,
-      39,    41,    42,    43,    44,    47,    49,    51,    52,    55,
-      56,    59,    61,    62,    65,    66,    67,    68,    69,    72,
-      73,    76,    77,    80,    82,    83,    86,    87,    90,    92,
-      93,    96,    97,   100,   101,   102,   103,   104,   107,   108,
-     109,   110,   111,   114,   115,   116,   117,   118,   119,   122,
-     123,   124,   127,   128,   131,   132,   135,   136,   137,   138,
-     139
+       0,    28,    28,    32,    33,    34,    35,    36,    39,    41,
+      42,    44,    45,    46,    47,    50,    52,    54,    55,    58,
+      59,    62,    64,    65,    68,    69,    70,    71,    72,    75,
+      76,    79,    80,    83,    85,    86,    89,    90,    93,    95,
+      96,    99,   100,   103,   104,   105,   106,   107,   110,   111,
+     112,   113,   114,   117,   118,   119,   120,   121,   122,   125,
+     126,   127,   130,   131,   134,   135,   138,   139,   140,   141,
+     142
 };
 #endif
 
@@ -1392,408 +1392,411 @@ yyreduce:
     {
   case 2: /* FuctionsAndDeclarations: FuctionsAndDeclarations FuctionDefinition  */
 #line 28 "uccompiler.y"
-                                                                   {;}
-#line 1397 "y.tab.c"
+                                                                   {yyval = program = newnode(FuctionsAndDeclarations, NULL);
+                                                                      struct node *function = newnode(Function, NULL);
+                                                                      addchild(function, newnode(FuctionDefinition, yyvsp[0]));
+                                                                      addchild(yyval, function);}
+#line 1400 "y.tab.c"
     break;
 
   case 3: /* FuctionsAndDeclarations: FuctionsAndDeclarations FuctionDeclaration  */
-#line 29 "uccompiler.y"
+#line 32 "uccompiler.y"
                                                                     {;}
-#line 1403 "y.tab.c"
+#line 1406 "y.tab.c"
     break;
 
   case 4: /* FuctionsAndDeclarations: FuctionsAndDeclarations Declaration  */
-#line 30 "uccompiler.y"
+#line 33 "uccompiler.y"
                                                              {;}
-#line 1409 "y.tab.c"
+#line 1412 "y.tab.c"
     break;
 
   case 5: /* FuctionsAndDeclarations: FuctionDefinition  */
-#line 31 "uccompiler.y"
+#line 34 "uccompiler.y"
                                            {;}
-#line 1415 "y.tab.c"
+#line 1418 "y.tab.c"
     break;
 
   case 6: /* FuctionsAndDeclarations: FuctionDeclaration  */
-#line 32 "uccompiler.y"
+#line 35 "uccompiler.y"
                                             {;}
-#line 1421 "y.tab.c"
+#line 1424 "y.tab.c"
     break;
 
   case 7: /* FuctionsAndDeclarations: Declaration  */
-#line 33 "uccompiler.y"
+#line 36 "uccompiler.y"
                                      {;}
-#line 1427 "y.tab.c"
+#line 1430 "y.tab.c"
     break;
 
   case 8: /* FuctionDefinition: TypeSpec FuctionDeclarator FuctionBody  */
-#line 36 "uccompiler.y"
+#line 39 "uccompiler.y"
                                                           {;}
-#line 1433 "y.tab.c"
+#line 1436 "y.tab.c"
     break;
 
   case 9: /* FuctionBody: LBRACE DeclarationAndStatements RBRACE  */
-#line 38 "uccompiler.y"
+#line 41 "uccompiler.y"
                                                     {;}
-#line 1439 "y.tab.c"
+#line 1442 "y.tab.c"
     break;
 
   case 10: /* FuctionBody: LBRACE RBRACE  */
-#line 39 "uccompiler.y"
+#line 42 "uccompiler.y"
                            {;}
-#line 1445 "y.tab.c"
+#line 1448 "y.tab.c"
     break;
 
   case 11: /* DeclarationAndStatements: Statement DeclarationAndStatements  */
-#line 41 "uccompiler.y"
+#line 44 "uccompiler.y"
                                                              {;}
-#line 1451 "y.tab.c"
+#line 1454 "y.tab.c"
     break;
 
   case 12: /* DeclarationAndStatements: Declaration DeclarationAndStatements  */
-#line 42 "uccompiler.y"
+#line 45 "uccompiler.y"
                                                                {;}
-#line 1457 "y.tab.c"
+#line 1460 "y.tab.c"
     break;
 
   case 13: /* DeclarationAndStatements: Statement  */
-#line 43 "uccompiler.y"
+#line 46 "uccompiler.y"
                                     {;}
-#line 1463 "y.tab.c"
+#line 1466 "y.tab.c"
     break;
 
   case 14: /* DeclarationAndStatements: Declaration  */
-#line 44 "uccompiler.y"
+#line 47 "uccompiler.y"
                                       {;}
-#line 1469 "y.tab.c"
+#line 1472 "y.tab.c"
     break;
 
   case 15: /* FuctionDeclaration: TypeSpec FuctionDeclarator SEMI  */
-#line 47 "uccompiler.y"
+#line 50 "uccompiler.y"
                                                     {;}
-#line 1475 "y.tab.c"
+#line 1478 "y.tab.c"
     break;
 
   case 16: /* FuctionDeclarator: IDENTIFIER LPAR ParameterList RPAR  */
-#line 49 "uccompiler.y"
+#line 52 "uccompiler.y"
                                                       {;}
-#line 1481 "y.tab.c"
+#line 1484 "y.tab.c"
     break;
 
   case 17: /* ParameterList: ParameterDeclaration  */
-#line 51 "uccompiler.y"
+#line 54 "uccompiler.y"
                                     {;}
-#line 1487 "y.tab.c"
+#line 1490 "y.tab.c"
     break;
 
   case 18: /* ParameterList: ParameterList COMMA ParameterDeclaration  */
-#line 52 "uccompiler.y"
+#line 55 "uccompiler.y"
                                                         {;}
-#line 1493 "y.tab.c"
+#line 1496 "y.tab.c"
     break;
 
   case 19: /* ParameterDeclaration: TypeSpec IDENTIFIER  */
-#line 55 "uccompiler.y"
+#line 58 "uccompiler.y"
                                           {;}
-#line 1499 "y.tab.c"
+#line 1502 "y.tab.c"
     break;
 
   case 20: /* ParameterDeclaration: TypeSpec  */
-#line 56 "uccompiler.y"
+#line 59 "uccompiler.y"
                                {;}
-#line 1505 "y.tab.c"
+#line 1508 "y.tab.c"
     break;
 
   case 21: /* Declaration: TypeSpec Declarator AuxDeclaration SEMI  */
-#line 59 "uccompiler.y"
+#line 62 "uccompiler.y"
                                                      {;}
-#line 1511 "y.tab.c"
+#line 1514 "y.tab.c"
     break;
 
   case 22: /* AuxDeclaration: AuxDeclaration COMMA Declarator  */
-#line 61 "uccompiler.y"
+#line 64 "uccompiler.y"
                                                 {;}
-#line 1517 "y.tab.c"
+#line 1520 "y.tab.c"
     break;
 
   case 24: /* TypeSpec: CHAR  */
-#line 65 "uccompiler.y"
+#line 68 "uccompiler.y"
                {;}
-#line 1523 "y.tab.c"
+#line 1526 "y.tab.c"
     break;
 
   case 25: /* TypeSpec: INT  */
-#line 66 "uccompiler.y"
+#line 69 "uccompiler.y"
               {;}
-#line 1529 "y.tab.c"
+#line 1532 "y.tab.c"
     break;
 
   case 26: /* TypeSpec: VOID  */
-#line 67 "uccompiler.y"
+#line 70 "uccompiler.y"
                {;}
-#line 1535 "y.tab.c"
+#line 1538 "y.tab.c"
     break;
 
   case 27: /* TypeSpec: SHORT  */
-#line 68 "uccompiler.y"
+#line 71 "uccompiler.y"
                 {;}
-#line 1541 "y.tab.c"
+#line 1544 "y.tab.c"
     break;
 
   case 28: /* TypeSpec: DOUBLE  */
-#line 69 "uccompiler.y"
+#line 72 "uccompiler.y"
                  {;}
-#line 1547 "y.tab.c"
+#line 1550 "y.tab.c"
     break;
 
   case 29: /* Declarator: IDENTIFIER ASSIGN Expr  */
-#line 72 "uccompiler.y"
+#line 75 "uccompiler.y"
                                    {;}
-#line 1553 "y.tab.c"
+#line 1556 "y.tab.c"
     break;
 
   case 30: /* Declarator: IDENTIFIER  */
-#line 73 "uccompiler.y"
+#line 76 "uccompiler.y"
                        {;}
-#line 1559 "y.tab.c"
+#line 1562 "y.tab.c"
     break;
 
   case 31: /* Statement: Expr SEMI  */
-#line 76 "uccompiler.y"
+#line 79 "uccompiler.y"
                      {;}
-#line 1565 "y.tab.c"
+#line 1568 "y.tab.c"
     break;
 
   case 32: /* Statement: SEMI  */
-#line 77 "uccompiler.y"
+#line 80 "uccompiler.y"
                 {;}
-#line 1571 "y.tab.c"
+#line 1574 "y.tab.c"
     break;
 
   case 33: /* Statement: LBRACE AuxStatement RBRACE  */
-#line 80 "uccompiler.y"
+#line 83 "uccompiler.y"
                                       {;}
-#line 1577 "y.tab.c"
+#line 1580 "y.tab.c"
     break;
 
   case 34: /* AuxStatement: AuxStatement Statement  */
-#line 82 "uccompiler.y"
+#line 85 "uccompiler.y"
                                      {;}
-#line 1583 "y.tab.c"
+#line 1586 "y.tab.c"
     break;
 
   case 36: /* Statement: IF LPAR Expr RPAR Statement ELSE Statement  */
-#line 86 "uccompiler.y"
+#line 89 "uccompiler.y"
                                                       {;}
-#line 1589 "y.tab.c"
+#line 1592 "y.tab.c"
     break;
 
   case 37: /* Statement: IF LPAR Expr RPAR Statement  */
-#line 87 "uccompiler.y"
+#line 90 "uccompiler.y"
                                        {;}
-#line 1595 "y.tab.c"
+#line 1598 "y.tab.c"
     break;
 
   case 38: /* Statement: WHILE LPAR Expr RPAR Statement  */
-#line 90 "uccompiler.y"
+#line 93 "uccompiler.y"
                                           {;}
-#line 1601 "y.tab.c"
+#line 1604 "y.tab.c"
     break;
 
   case 39: /* Statement: RETURN Expr SEMI  */
-#line 92 "uccompiler.y"
+#line 95 "uccompiler.y"
                             {;}
-#line 1607 "y.tab.c"
+#line 1610 "y.tab.c"
     break;
 
   case 40: /* Statement: RETURN SEMI  */
-#line 93 "uccompiler.y"
+#line 96 "uccompiler.y"
                        {;}
-#line 1613 "y.tab.c"
+#line 1616 "y.tab.c"
     break;
 
   case 41: /* Expr: Expr ASSIGN Expr  */
-#line 96 "uccompiler.y"
+#line 99 "uccompiler.y"
                        {;}
-#line 1619 "y.tab.c"
+#line 1622 "y.tab.c"
     break;
 
   case 42: /* Expr: Expr COMMA Expr  */
-#line 97 "uccompiler.y"
+#line 100 "uccompiler.y"
                       {;}
-#line 1625 "y.tab.c"
+#line 1628 "y.tab.c"
     break;
 
   case 43: /* Expr: Expr PLUS Expr  */
-#line 100 "uccompiler.y"
+#line 103 "uccompiler.y"
                      {;}
-#line 1631 "y.tab.c"
+#line 1634 "y.tab.c"
     break;
 
   case 44: /* Expr: Expr MINUS Expr  */
-#line 101 "uccompiler.y"
+#line 104 "uccompiler.y"
                       {;}
-#line 1637 "y.tab.c"
+#line 1640 "y.tab.c"
     break;
 
   case 45: /* Expr: Expr MUL Expr  */
-#line 102 "uccompiler.y"
+#line 105 "uccompiler.y"
                     {;}
-#line 1643 "y.tab.c"
+#line 1646 "y.tab.c"
     break;
 
   case 46: /* Expr: Expr DIV Expr  */
-#line 103 "uccompiler.y"
+#line 106 "uccompiler.y"
                     {;}
-#line 1649 "y.tab.c"
+#line 1652 "y.tab.c"
     break;
 
   case 47: /* Expr: Expr MOD Expr  */
-#line 104 "uccompiler.y"
+#line 107 "uccompiler.y"
                     {;}
-#line 1655 "y.tab.c"
+#line 1658 "y.tab.c"
     break;
 
   case 48: /* Expr: Expr OR Expr  */
-#line 107 "uccompiler.y"
+#line 110 "uccompiler.y"
                    {;}
-#line 1661 "y.tab.c"
+#line 1664 "y.tab.c"
     break;
 
   case 49: /* Expr: Expr AND Expr  */
-#line 108 "uccompiler.y"
+#line 111 "uccompiler.y"
                     {;}
-#line 1667 "y.tab.c"
+#line 1670 "y.tab.c"
     break;
 
   case 50: /* Expr: Expr BITWISEAND Expr  */
-#line 109 "uccompiler.y"
+#line 112 "uccompiler.y"
                            {;}
-#line 1673 "y.tab.c"
+#line 1676 "y.tab.c"
     break;
 
   case 51: /* Expr: Expr BITWISEOR Expr  */
-#line 110 "uccompiler.y"
+#line 113 "uccompiler.y"
                           {;}
-#line 1679 "y.tab.c"
+#line 1682 "y.tab.c"
     break;
 
   case 52: /* Expr: Expr BITWISEXOR Expr  */
-#line 111 "uccompiler.y"
+#line 114 "uccompiler.y"
                            {;}
-#line 1685 "y.tab.c"
+#line 1688 "y.tab.c"
     break;
 
   case 53: /* Expr: Expr EQ Expr  */
-#line 114 "uccompiler.y"
+#line 117 "uccompiler.y"
                    {;}
-#line 1691 "y.tab.c"
+#line 1694 "y.tab.c"
     break;
 
   case 54: /* Expr: Expr NE Expr  */
-#line 115 "uccompiler.y"
+#line 118 "uccompiler.y"
                    {;}
-#line 1697 "y.tab.c"
+#line 1700 "y.tab.c"
     break;
 
   case 55: /* Expr: Expr LE Expr  */
-#line 116 "uccompiler.y"
+#line 119 "uccompiler.y"
                    {;}
-#line 1703 "y.tab.c"
+#line 1706 "y.tab.c"
     break;
 
   case 56: /* Expr: Expr GE Expr  */
-#line 117 "uccompiler.y"
+#line 120 "uccompiler.y"
                    {;}
-#line 1709 "y.tab.c"
+#line 1712 "y.tab.c"
     break;
 
   case 57: /* Expr: Expr LT Expr  */
-#line 118 "uccompiler.y"
+#line 121 "uccompiler.y"
                    {;}
-#line 1715 "y.tab.c"
+#line 1718 "y.tab.c"
     break;
 
   case 58: /* Expr: Expr GT Expr  */
-#line 119 "uccompiler.y"
+#line 122 "uccompiler.y"
                    {;}
-#line 1721 "y.tab.c"
+#line 1724 "y.tab.c"
     break;
 
   case 59: /* Expr: PLUS Expr  */
-#line 122 "uccompiler.y"
+#line 125 "uccompiler.y"
                 {;}
-#line 1727 "y.tab.c"
+#line 1730 "y.tab.c"
     break;
 
   case 60: /* Expr: MINUS Expr  */
-#line 123 "uccompiler.y"
+#line 126 "uccompiler.y"
                  {;}
-#line 1733 "y.tab.c"
+#line 1736 "y.tab.c"
     break;
 
   case 61: /* Expr: NOT Expr  */
-#line 124 "uccompiler.y"
+#line 127 "uccompiler.y"
                {;}
-#line 1739 "y.tab.c"
+#line 1742 "y.tab.c"
     break;
 
   case 62: /* Expr: IDENTIFIER LPAR RPAR  */
-#line 127 "uccompiler.y"
+#line 130 "uccompiler.y"
                            {;}
-#line 1745 "y.tab.c"
+#line 1748 "y.tab.c"
     break;
 
   case 63: /* Expr: IDENTIFIER LPAR Expr_comma RPAR  */
-#line 128 "uccompiler.y"
+#line 131 "uccompiler.y"
                                       {;}
-#line 1751 "y.tab.c"
+#line 1754 "y.tab.c"
     break;
 
   case 64: /* Expr_comma: Expr_comma COMMA Expr  */
-#line 131 "uccompiler.y"
+#line 134 "uccompiler.y"
                                   {;}
-#line 1757 "y.tab.c"
+#line 1760 "y.tab.c"
     break;
 
   case 65: /* Expr_comma: Expr  */
-#line 132 "uccompiler.y"
+#line 135 "uccompiler.y"
                  {;}
-#line 1763 "y.tab.c"
+#line 1766 "y.tab.c"
     break;
 
   case 66: /* Expr: IDENTIFIER  */
-#line 135 "uccompiler.y"
+#line 138 "uccompiler.y"
                  {;}
-#line 1769 "y.tab.c"
+#line 1772 "y.tab.c"
     break;
 
   case 67: /* Expr: NATURAL  */
-#line 136 "uccompiler.y"
+#line 139 "uccompiler.y"
               {;}
-#line 1775 "y.tab.c"
+#line 1778 "y.tab.c"
     break;
 
   case 68: /* Expr: CHRLIT  */
-#line 137 "uccompiler.y"
+#line 140 "uccompiler.y"
              {;}
-#line 1781 "y.tab.c"
+#line 1784 "y.tab.c"
     break;
 
   case 69: /* Expr: DECIMAL  */
-#line 138 "uccompiler.y"
+#line 141 "uccompiler.y"
               {;}
-#line 1787 "y.tab.c"
+#line 1790 "y.tab.c"
     break;
 
   case 70: /* Expr: LPAR Expr RPAR  */
-#line 139 "uccompiler.y"
+#line 142 "uccompiler.y"
                      {;}
-#line 1793 "y.tab.c"
+#line 1796 "y.tab.c"
     break;
 
 
-#line 1797 "y.tab.c"
+#line 1800 "y.tab.c"
 
       default: break;
     }
@@ -1986,8 +1989,3 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 143 "uccompiler.y"
-
-void yyerror(char *error) {
-    printf("%s '%s'\n", error, yytext);
-}
