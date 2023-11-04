@@ -35,6 +35,7 @@ FuctionsAndDeclarations: FuctionsAndDeclarations FuctionDefinition {;}
 FuctionDefinition: TypeSpec FuctionDeclarator FuctionBody {;}
 
 FuctionBody: LBRACE DeclarationAndStatements RBRACE {;}
+            |LBRACE RBRACE {;}
 
 DeclarationAndStatements: Statement DeclarationAndStatements {;}
                          |Declaration DeclarationAndStatements {;}
@@ -47,12 +48,18 @@ FuctionDeclaration: TypeSpec FuctionDeclarator SEMI {;}
 FuctionDeclarator: IDENTIFIER LPAR ParameterList RPAR {;}
 
 ParameterList: ParameterDeclaration {;}
-              |COMMA ParameterDeclaration {;}
+              |ParameterList COMMA ParameterDeclaration {;}
               ;
 
 ParameterDeclaration: TypeSpec IDENTIFIER {;}
+                     |TypeSpec {;}
+                     ;
 
-Declaration: TypeSpec Declarator COMMA Declarator SEMI {;}
+Declaration: TypeSpec Declarator AuxDeclaration SEMI {;}
+
+AuxDeclaration: AuxDeclaration COMMA Declarator {;}
+               |;
+               ;
 
 TypeSpec: CHAR {;}
          |INT {;}
@@ -62,16 +69,28 @@ TypeSpec: CHAR {;}
          ;
 
 Declarator: IDENTIFIER ASSIGN Expr {;}
+           |IDENTIFIER {;}
+           ;
 
 Statement: Expr SEMI {;}
+          |SEMI {;}
+          ;
 
-Statement: LBRACE Statement RBRACE {;}
+Statement: LBRACE AuxStatement RBRACE {;}
+
+AuxStatement: AuxStatement Statement {;}
+             |;
+             ;
 
 Statement: IF LPAR Expr RPAR Statement ELSE Statement {;}
+          |IF LPAR Expr RPAR Statement {;}
+          ;
 
 Statement: WHILE LPAR Expr RPAR Statement {;}
 
 Statement: RETURN Expr SEMI {;}
+          |RETURN SEMI {;}
+          ;
 
 Expr: Expr ASSIGN  Expr {;}
      |Expr COMMA Expr {;}
@@ -104,13 +123,19 @@ Expr: PLUS Expr {;}
      |NOT Expr {;}
      ;
 
-Expr: IDENTIFIER LPAR Expr COMMA Expr RPAR {;}
+Expr: IDENTIFIER LPAR RPAR {;}
+     |IDENTIFIER LPAR AuxExpr RPAR {;}
+
+AuxExpr: AuxExpr COMMA Expr {;}
+        |Expr {;}
+        ;
 
 Expr: IDENTIFIER {;}
      |NATURAL {;}
      |CHRLIT {;}
      |DECIMAL {;}
      |LPAR Expr RPAR {;}
+     ;
 
 
 %%
