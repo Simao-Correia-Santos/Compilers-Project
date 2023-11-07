@@ -39,7 +39,7 @@
 # define YY_YY_Y_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -78,20 +78,20 @@ extern int yydebug;
     RBRACE = 279,                  /* RBRACE  */
     RPAR = 280,                    /* RPAR  */
     SEMI = 281,                    /* SEMI  */
-    IDENTIFIER = 282,              /* IDENTIFIER  */
-    DECIMAL = 283,                 /* DECIMAL  */
-    NATURAL = 284,                 /* NATURAL  */
-    CHRLIT = 285,                  /* CHRLIT  */
-    CHAR = 286,                    /* CHAR  */
-    ELSE = 287,                    /* ELSE  */
-    WHILE = 288,                   /* WHILE  */
-    IF = 289,                      /* IF  */
-    INT = 290,                     /* INT  */
-    SHORT = 291,                   /* SHORT  */
-    DOUBLE = 292,                  /* DOUBLE  */
-    RETURN = 293,                  /* RETURN  */
-    VOID = 294,                    /* VOID  */
-    RESERVED = 295                 /* RESERVED  */
+    CHAR = 282,                    /* CHAR  */
+    ELSE = 283,                    /* ELSE  */
+    WHILE = 284,                   /* WHILE  */
+    IF = 285,                      /* IF  */
+    INT = 286,                     /* INT  */
+    SHORT = 287,                   /* SHORT  */
+    DOUBLE = 288,                  /* DOUBLE  */
+    RETURN = 289,                  /* RETURN  */
+    VOID = 290,                    /* VOID  */
+    RESERVED = 291,                /* RESERVED  */
+    IDENTIFIER = 292,              /* IDENTIFIER  */
+    DECIMAL = 293,                 /* DECIMAL  */
+    NATURAL = 294,                 /* NATURAL  */
+    CHRLIT = 295                   /* CHRLIT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -124,24 +124,34 @@ extern int yydebug;
 #define RBRACE 279
 #define RPAR 280
 #define SEMI 281
-#define IDENTIFIER 282
-#define DECIMAL 283
-#define NATURAL 284
-#define CHRLIT 285
-#define CHAR 286
-#define ELSE 287
-#define WHILE 288
-#define IF 289
-#define INT 290
-#define SHORT 291
-#define DOUBLE 292
-#define RETURN 293
-#define VOID 294
-#define RESERVED 295
+#define CHAR 282
+#define ELSE 283
+#define WHILE 284
+#define IF 285
+#define INT 286
+#define SHORT 287
+#define DOUBLE 288
+#define RETURN 289
+#define VOID 290
+#define RESERVED 291
+#define IDENTIFIER 292
+#define DECIMAL 293
+#define NATURAL 294
+#define CHRLIT 295
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+union YYSTYPE
+{
+#line 13 "uccompiler.y"
+
+     char* lexeme;
+     struct node* node;
+
+#line 152 "y.tab.h"
+
+};
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif

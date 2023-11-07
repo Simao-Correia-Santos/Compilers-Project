@@ -5,12 +5,15 @@ white_spaces " "|"\n"|"\t"|"\r"|"\n\r"
 error .
 scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 
+%option noyywrap
+
 %{  
     #include <string.h>
     #include "y.tab.h"
     #include "ast.h"
-    int yyparse(void);
+    #define PASS_TOKEN() yylval.lexeme = strdup(yytext);
 
+    int yyparse(void);
     int syntax_errors = 0;
     int syntax_row = 0;
     int syntax_column = 1;
@@ -83,14 +86,14 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 ";"                                                { if(tokens) printf("SEMI\n"); return SEMI; }
 
 
-({letter}|"_")+({letter}|{digit}|"_")*             { if(tokens) printf("IDENTIFIER(%s)\n", yytext); return IDENTIFIER; }
+({letter}|"_")+({letter}|{digit}|"_")*             { if(tokens) printf("IDENTIFIER(%s)\n", yytext); PASS_TOKEN(); return IDENTIFIER; }
 
-{digit}+                                           { if(tokens) printf("NATURAL(%s)\n", yytext); return NATURAL; }
+{digit}+                                           { if(tokens) printf("NATURAL(%s)\n", yytext); PASS_TOKEN(); return NATURAL; }
 
-(({digit}*"."{digit}+)|({digit}+"."?{digit}*))([eE][+-]?{digit}+)? { if(tokens) printf("DECIMAL(%s)\n", yytext); return DECIMAL; } 
+(({digit}*"."{digit}+)|({digit}+"."?{digit}*))([eE][+-]?{digit}+)? { if(tokens) printf("DECIMAL(%s)\n", yytext); PASS_TOKEN(); return DECIMAL; } 
 
 
-{scape_sequence}|'[^"\n"'\\]'|'\"'                 { if(tokens) printf("CHRLIT(%s)\n", yytext); return CHRLIT; }
+{scape_sequence}|'[^"\n"'\\]'|'\"'                 { if(tokens) printf("CHRLIT(%s)\n", yytext); PASS_TOKEN(); return CHRLIT; }
 
 '                                                  { BEGIN CHAR; buffer[0] = '\0'; strcat(buffer, yytext); row_char = row; column_char = column; }
 <CHAR>'                                            { BEGIN 0; strcat(buffer, yytext); printf("Line %d, column %d: invalid char constant (%s)\n", row_char, column_char, buffer); }
@@ -107,7 +110,7 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 extern int yylex();
 
 void yyerror(char *error) {
-    sintax_errors++;
+    syntax_errors += 1;
     printf("Line %d, column %d: %s: %s\n", syntax_row, syntax_column, error, yytext);
 }
 
