@@ -1042,7 +1042,7 @@ YY_RULE_SETUP
 case 10:
 YY_RULE_SETUP
 #line 53 "uccompiler.l"
-{ toUpper(yytext, yyleng); printf("%s\n", yytext); return CHAR; }
+{ toUpper(yytext, yyleng); printf("%s\n", yytext); return CHR; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP

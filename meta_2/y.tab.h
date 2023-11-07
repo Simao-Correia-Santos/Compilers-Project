@@ -78,7 +78,7 @@ extern int yydebug;
     RBRACE = 279,                  /* RBRACE  */
     RPAR = 280,                    /* RPAR  */
     SEMI = 281,                    /* SEMI  */
-    CHAR = 282,                    /* CHAR  */
+    CHR = 282,                     /* CHR  */
     ELSE = 283,                    /* ELSE  */
     WHILE = 284,                   /* WHILE  */
     IF = 285,                      /* IF  */
@@ -124,7 +124,7 @@ extern int yydebug;
 #define RBRACE 279
 #define RPAR 280
 #define SEMI 281
-#define CHAR 282
+#define CHR 282
 #define ELSE 283
 #define WHILE 284
 #define IF 285

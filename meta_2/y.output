@@ -41,7 +41,7 @@ Grammar
    22 AuxDeclaration: AuxDeclaration COMMA Declarator
    23               | ε
 
-   24 TypeSpec: CHAR
+   24 TypeSpec: CHR
    25         | INT
    26         | VOID
    27         | SHORT
@@ -124,7 +124,7 @@ Terminals, with rules where they appear
     RBRACE (279) 9 10 33
     RPAR (280) 16 36 37 38 61 62 69
     SEMI (281) 15 21 31 32 39 40
-    CHAR (282) 24
+    CHR (282) 24
     ELSE (283) 36
     WHILE (284) 38
     IF (285) 36 37
@@ -210,13 +210,13 @@ State 0
     8 FunctionDefinition: • TypeSpec FunctionDeclarator FunctionBody
    15 FunctionDeclaration: • TypeSpec FunctionDeclarator SEMI
    21 Declaration: • TypeSpec Declarator AuxDeclaration SEMI
-   24 TypeSpec: • CHAR
+   24 TypeSpec: • CHR
    25         | • INT
    26         | • VOID
    27         | • SHORT
    28         | • DOUBLE
 
-    CHAR    shift, and go to state 1
+    CHR     shift, and go to state 1
     INT     shift, and go to state 2
     SHORT   shift, and go to state 3
     DOUBLE  shift, and go to state 4
@@ -232,7 +232,7 @@ State 0
 
 State 1
 
-   24 TypeSpec: CHAR •
+   24 TypeSpec: CHR •
 
     $default  reduce using rule 24 (TypeSpec)
 
@@ -281,13 +281,13 @@ State 7
     8 FunctionDefinition: • TypeSpec FunctionDeclarator FunctionBody
    15 FunctionDeclaration: • TypeSpec FunctionDeclarator SEMI
    21 Declaration: • TypeSpec Declarator AuxDeclaration SEMI
-   24 TypeSpec: • CHAR
+   24 TypeSpec: • CHR
    25         | • INT
    26         | • VOID
    27         | • SHORT
    28         | • DOUBLE
 
-    CHAR    shift, and go to state 1
+    CHR     shift, and go to state 1
     INT     shift, and go to state 2
     SHORT   shift, and go to state 3
     DOUBLE  shift, and go to state 4
@@ -454,13 +454,13 @@ State 20
    18              | • ParameterList COMMA ParameterDeclaration
    19 ParameterDeclaration: • TypeSpec IDENTIFIER
    20                     | • TypeSpec
-   24 TypeSpec: • CHAR
+   24 TypeSpec: • CHR
    25         | • INT
    26         | • VOID
    27         | • SHORT
    28         | • DOUBLE
 
-    CHAR    shift, and go to state 1
+    CHR     shift, and go to state 1
     INT     shift, and go to state 2
     SHORT   shift, and go to state 3
     DOUBLE  shift, and go to state 4
@@ -480,7 +480,7 @@ State 21
    13                         | • Statement
    14                         | • Declaration
    21 Declaration: • TypeSpec Declarator AuxDeclaration SEMI
-   24 TypeSpec: • CHAR
+   24 TypeSpec: • CHR
    25         | • INT
    26         | • VOID
    27         | • SHORT
@@ -530,7 +530,7 @@ State 21
     PLUS        shift, and go to state 28
     RBRACE      shift, and go to state 39
     SEMI        shift, and go to state 40
-    CHAR        shift, and go to state 1
+    CHR         shift, and go to state 1
     WHILE       shift, and go to state 41
     IF          shift, and go to state 42
     INT         shift, and go to state 2
@@ -960,7 +960,7 @@ State 45
    14                         | • Declaration
    14                         | Declaration •  [RBRACE]
    21 Declaration: • TypeSpec Declarator AuxDeclaration SEMI
-   24 TypeSpec: • CHAR
+   24 TypeSpec: • CHR
    25         | • INT
    26         | • VOID
    27         | • SHORT
@@ -1009,7 +1009,7 @@ State 45
     NOT         shift, and go to state 27
     PLUS        shift, and go to state 28
     SEMI        shift, and go to state 40
-    CHAR        shift, and go to state 1
+    CHR         shift, and go to state 1
     WHILE       shift, and go to state 41
     IF          shift, and go to state 42
     INT         shift, and go to state 2
@@ -1052,7 +1052,7 @@ State 47
    13                         | Statement •  [RBRACE]
    14                         | • Declaration
    21 Declaration: • TypeSpec Declarator AuxDeclaration SEMI
-   24 TypeSpec: • CHAR
+   24 TypeSpec: • CHR
    25         | • INT
    26         | • VOID
    27         | • SHORT
@@ -1101,7 +1101,7 @@ State 47
     NOT         shift, and go to state 27
     PLUS        shift, and go to state 28
     SEMI        shift, and go to state 40
-    CHAR        shift, and go to state 1
+    CHR         shift, and go to state 1
     WHILE       shift, and go to state 41
     IF          shift, and go to state 42
     INT         shift, and go to state 2
@@ -2153,13 +2153,13 @@ State 74
    18 ParameterList: ParameterList COMMA • ParameterDeclaration
    19 ParameterDeclaration: • TypeSpec IDENTIFIER
    20                     | • TypeSpec
-   24 TypeSpec: • CHAR
+   24 TypeSpec: • CHR
    25         | • INT
    26         | • VOID
    27         | • SHORT
    28         | • DOUBLE
 
-    CHAR    shift, and go to state 1
+    CHR     shift, and go to state 1
     INT     shift, and go to state 2
     SHORT   shift, and go to state 3
     DOUBLE  shift, and go to state 4
@@ -3503,7 +3503,7 @@ State 118
 State 119
 
    36 Statement: IF LPAR Expr_comma RPAR Statement • ELSE Statement
-   37          | IF LPAR Expr_comma RPAR Statement •  [LBRACE, LPAR, MINUS, NOT, PLUS, RBRACE, SEMI, CHAR, WHILE, IF, INT, SHORT, DOUBLE, RETURN, VOID, IDENTIFIER, DECIMAL, NATURAL, CHRLIT]
+   37          | IF LPAR Expr_comma RPAR Statement •  [LBRACE, LPAR, MINUS, NOT, PLUS, RBRACE, SEMI, CHR, WHILE, IF, INT, SHORT, DOUBLE, RETURN, VOID, IDENTIFIER, DECIMAL, NATURAL, CHRLIT]
 
     ELSE  shift, and go to state 120
 

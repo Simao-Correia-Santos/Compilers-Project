@@ -50,7 +50,7 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 
 {reserved}                                         { if(tokens) printf("RESERVED(%s)\n", yytext); }
 
-"char"                                             { toUpper(yytext, yyleng); printf("%s\n", yytext); return CHAR; }
+"char"                                             { toUpper(yytext, yyleng); printf("%s\n", yytext); return CHR; }
 "else"                                             { toUpper(yytext, yyleng); printf("%s\n", yytext); return ELSE; }
 "while"                                            { toUpper(yytext, yyleng); printf("%s\n", yytext); return WHILE; }
 "if"                                               { toUpper(yytext, yyleng); printf("%s\n", yytext); return IF; }
