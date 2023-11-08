@@ -1,7 +1,0 @@
-Program
-..FuncDecl
-....FuncHeader
-......Id(ola)
-......Int
-......FuncParams
-....FuncBody

@@ -6,15 +6,16 @@
   struct node *program;
 %}
 
-%token BITWISEAND BITWISEOR BITWISEXOR AND ASSIGN MUL COMMA DIV EQ GE GT LBRACE LE LPAR LT MINUS MOD NE NOT OR PLUS RBRACE RPAR SEMI CHR ELSE WHILE IF INT SHORT DOUBLE RETURN VOID RESERVED 
-%token<lexeme> IDENTIFIER DECIMAL NATURAL CHRLIT
-%type<node> Program FunctionsAndDeclarations FunctionDefinition FunctionBody DeclarationAndStatements FunctionDeclaration FunctionDeclarator ParameterList ParameterDeclaration Declaration AuxDeclaration TypeSpec Declarator Statement AuxStatement Expr Expr_comma
+%token BITWISEAND BITWISEOR BITWISEXOR AND ASSIGN MUL COMMA DIV EQ GE GT LBRACE LE LPAR LT MINUS MOD NE NOT OR PLUS RBRACE RPAR SEMI CHR ELSE WHILE IF INT SHORT DOUBLE RETURN VOID
+%token<lexeme> IDENTIFIER DECIMAL NATURAL CHRLIT RESERVED
+%type<node> Program FunctionsAndDeclarations FunctionDefinition FunctionBody DeclarationAndStatements FunctionDeclaration FunctionDeclarator ParameterList ParameterDeclaration Declaration AuxDeclaration TypeSpec Declarator Statement AuxStatement Expr Expr_comma Statement_error
 
 %union{
      char* lexeme;
      struct node* node;
 }
 
+%right ELSE
 %left COMMA
 %right ASSIGN
 %left OR
@@ -29,7 +30,6 @@
 %right NOT
 %left LPAR RPAR
 
-%nonassoc ELSE
 
 
 %%
@@ -47,6 +47,7 @@ FunctionDefinition: TypeSpec FunctionDeclarator FunctionBody {;}
 
 FunctionBody: LBRACE DeclarationAndStatements RBRACE {;}
             |LBRACE RBRACE {;}
+            ;
 
 DeclarationAndStatements: Statement DeclarationAndStatements {;}
                          |Declaration DeclarationAndStatements {;}
@@ -67,9 +68,10 @@ ParameterDeclaration: TypeSpec IDENTIFIER {;}
                      ;
 
 Declaration: TypeSpec Declarator AuxDeclaration SEMI {;}
+            |error SEMI {;}
 
 AuxDeclaration: AuxDeclaration COMMA Declarator {;}
-               |{;} 
+               |{}; 
                ;
 
 TypeSpec: CHR {;}
@@ -83,67 +85,57 @@ Declarator: IDENTIFIER ASSIGN Expr_comma {;}
            |IDENTIFIER {;}
            ;
 
-Statement: Expr_comma SEMI {;}
-          |SEMI {;}
-          ;
+Statement_error: error SEMI {;}
+                |Statement {;}
+                ;
 
-Statement: LBRACE AuxStatement RBRACE {;}
-
-AuxStatement: AuxStatement Statement {;}
-             | {};
+AuxStatement: AuxStatement Statement_error {;}
+             | Statement_error{};
              ;
 
-Statement: IF LPAR Expr_comma RPAR Statement ELSE Statement %prec ELSE {;}
-          |IF LPAR Expr_comma RPAR Statement {;}
-          ;
-
-Statement: WHILE LPAR Expr_comma RPAR Statement {;}
-
-Statement: RETURN Expr_comma SEMI {;}
+Statement:LBRACE AuxStatement RBRACE {;} 
+          |SEMI {;}
+          |LBRACE error RBRACE {;}
+          |LBRACE RBRACE {;}
+          |Expr_comma SEMI {;}
+          |IF LPAR Expr_comma RPAR Statement_error ELSE Statement_error  {;}
+          |IF LPAR Expr_comma RPAR Statement_error %prec ELSE{;}
+          |WHILE LPAR Expr_comma RPAR Statement_error {;}
+          |RETURN Expr_comma SEMI {;}
           |RETURN SEMI {;}
           ;
-
-Expr: Expr ASSIGN Expr {;}
-     ;
-
-Expr: Expr PLUS Expr {;}
-     |Expr MINUS Expr {;}
-     |Expr MUL Expr {;}
-     |Expr DIV Expr {;}
-     |Expr MOD Expr {;}
-     ;
-
-Expr: Expr OR Expr {;}
-     |Expr AND Expr {;}
-     |Expr BITWISEAND Expr {;}
-     |Expr BITWISEOR Expr {;}
-     |Expr BITWISEXOR Expr {;}
-     ;
-
-Expr: Expr EQ Expr {;}
-     |Expr NE Expr {;}
-     |Expr LE Expr {;}
-     |Expr GE Expr {;}
-     |Expr LT Expr {;}
-     |Expr GT Expr {;}
-     ;
-
-Expr: PLUS Expr {;}
-     |MINUS Expr {;}
-     |NOT Expr {;}
-     ;
-
-Expr: IDENTIFIER LPAR RPAR {;}
-     |IDENTIFIER LPAR Expr_comma RPAR {;}
-     ;
 
 Expr_comma: Expr_comma COMMA Expr {;}
            |Expr {;}
            ;
 
-Expr: IDENTIFIER {;}
-     |NATURAL {;}
-     |CHRLIT {;}
-     |DECIMAL {;}
-     |LPAR Expr RPAR {;}
-     ;
+Expr:    IDENTIFIER LPAR error RPAR {;}
+        |LPAR error RPAR {;}
+        |Expr ASSIGN Expr {;}
+        |Expr PLUS Expr {;}
+        |Expr MINUS Expr {;}
+        |Expr MUL Expr {;}
+        |Expr DIV Expr {;}
+        |Expr MOD Expr {;}
+        |Expr OR Expr {;}
+        |Expr AND Expr {;}
+        |Expr BITWISEAND Expr {;}
+        |Expr BITWISEOR Expr {;}
+        |Expr BITWISEXOR Expr {;}
+        |Expr EQ Expr {;}
+        |Expr NE Expr{;}
+        |Expr LE Expr{;}
+        |Expr GE Expr{;}
+        |Expr LT Expr{;}
+        |Expr GT Expr{;}
+        |PLUS Expr %prec NOT {;} 
+        |MINUS Expr %prec NOT {;}
+        |NOT Expr {;}
+        |IDENTIFIER LPAR RPAR {;}
+        |IDENTIFIER LPAR Expr_comma RPAR {;}
+        |IDENTIFIER  {;}
+        |NATURAL {;}
+        |CHRLIT {;}
+        |DECIMAL {;}
+        |LPAR Expr_comma RPAR {;}
+        ;

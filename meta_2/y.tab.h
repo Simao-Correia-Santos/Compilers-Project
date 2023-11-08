@@ -87,11 +87,11 @@ extern int yydebug;
     DOUBLE = 288,                  /* DOUBLE  */
     RETURN = 289,                  /* RETURN  */
     VOID = 290,                    /* VOID  */
-    RESERVED = 291,                /* RESERVED  */
-    IDENTIFIER = 292,              /* IDENTIFIER  */
-    DECIMAL = 293,                 /* DECIMAL  */
-    NATURAL = 294,                 /* NATURAL  */
-    CHRLIT = 295                   /* CHRLIT  */
+    IDENTIFIER = 291,              /* IDENTIFIER  */
+    DECIMAL = 292,                 /* DECIMAL  */
+    NATURAL = 293,                 /* NATURAL  */
+    CHRLIT = 294,                  /* CHRLIT  */
+    RESERVED = 295                 /* RESERVED  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -133,11 +133,11 @@ extern int yydebug;
 #define DOUBLE 288
 #define RETURN 289
 #define VOID 290
-#define RESERVED 291
-#define IDENTIFIER 292
-#define DECIMAL 293
-#define NATURAL 294
-#define CHRLIT 295
+#define IDENTIFIER 291
+#define DECIMAL 292
+#define NATURAL 293
+#define CHRLIT 294
+#define RESERVED 295
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
