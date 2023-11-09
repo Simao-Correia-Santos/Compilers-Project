@@ -21,8 +21,8 @@ Grammar
     9 FunctionBody: LBRACE DeclarationAndStatements RBRACE
    10             | LBRACE RBRACE
 
-   11 DeclarationAndStatements: Statement DeclarationAndStatements
-   12                         | Declaration DeclarationAndStatements
+   11 DeclarationAndStatements: DeclarationAndStatements Statement
+   12                         | DeclarationAndStatements Declaration
    13                         | Statement
    14                         | Declaration
 
@@ -504,8 +504,8 @@ State 23
 
     9 FunctionBody: LBRACE • DeclarationAndStatements RBRACE
    10             | LBRACE • RBRACE
-   11 DeclarationAndStatements: • Statement DeclarationAndStatements
-   12                         | • Declaration DeclarationAndStatements
+   11 DeclarationAndStatements: • DeclarationAndStatements Statement
+   12                         | • DeclarationAndStatements Declaration
    13                         | • Statement
    14                         | • Declaration
    21 Declaration: • TypeSpec Declarator AuxDeclaration SEMI
@@ -1061,18 +1061,8 @@ State 45
 State 46
 
     9 FunctionBody: LBRACE DeclarationAndStatements • RBRACE
-
-    RBRACE  shift, and go to state 89
-
-
-State 47
-
-   11 DeclarationAndStatements: • Statement DeclarationAndStatements
-   12                         | • Declaration DeclarationAndStatements
-   12                         | Declaration • DeclarationAndStatements
-   13                         | • Statement
-   14                         | • Declaration
-   14                         | Declaration •  [RBRACE]
+   11 DeclarationAndStatements: DeclarationAndStatements • Statement
+   12                         | DeclarationAndStatements • Declaration
    21 Declaration: • TypeSpec Declarator AuxDeclaration SEMI
    22            | • error SEMI
    25 TypeSpec: • CHR
@@ -1128,6 +1118,7 @@ State 47
     MINUS       shift, and go to state 28
     NOT         shift, and go to state 29
     PLUS        shift, and go to state 30
+    RBRACE      shift, and go to state 89
     SEMI        shift, and go to state 42
     CHR         shift, and go to state 2
     WHILE       shift, and go to state 43
@@ -1142,14 +1133,18 @@ State 47
     NATURAL     shift, and go to state 33
     CHRLIT      shift, and go to state 34
 
-    RBRACE  reduce using rule 14 (DeclarationAndStatements)
+    Declaration  go to state 90
+    TypeSpec     go to state 48
+    Statement    go to state 91
+    Expr_comma   go to state 50
+    Expr         go to state 36
 
-    DeclarationAndStatements  go to state 90
-    Declaration               go to state 47
-    TypeSpec                  go to state 48
-    Statement                 go to state 49
-    Expr_comma                go to state 50
-    Expr                      go to state 36
+
+State 47
+
+   14 DeclarationAndStatements: Declaration •
+
+    $default  reduce using rule 14 (DeclarationAndStatements)
 
 
 State 48
@@ -1158,96 +1153,16 @@ State 48
    30 Declarator: • IDENTIFIER ASSIGN Expr_comma
    31           | • IDENTIFIER
 
-    IDENTIFIER  shift, and go to state 91
+    IDENTIFIER  shift, and go to state 92
 
     Declarator  go to state 20
 
 
 State 49
 
-   11 DeclarationAndStatements: • Statement DeclarationAndStatements
-   11                         | Statement • DeclarationAndStatements
-   12                         | • Declaration DeclarationAndStatements
-   13                         | • Statement
-   13                         | Statement •  [RBRACE]
-   14                         | • Declaration
-   21 Declaration: • TypeSpec Declarator AuxDeclaration SEMI
-   22            | • error SEMI
-   25 TypeSpec: • CHR
-   26         | • INT
-   27         | • VOID
-   28         | • SHORT
-   29         | • DOUBLE
-   36 Statement: • LBRACE AuxStatement RBRACE
-   37          | • SEMI
-   38          | • LBRACE error RBRACE
-   39          | • LBRACE RBRACE
-   40          | • Expr_comma SEMI
-   41          | • IF LPAR Expr_comma RPAR Statement_error ELSE Statement_error
-   42          | • IF LPAR Expr_comma RPAR Statement_error
-   43          | • WHILE LPAR Expr_comma RPAR Statement_error
-   44          | • RETURN Expr_comma SEMI
-   45          | • RETURN SEMI
-   46 Expr_comma: • Expr_comma COMMA Expr
-   47           | • Expr
-   48 Expr: • IDENTIFIER LPAR error RPAR
-   49     | • LPAR error RPAR
-   50     | • Expr ASSIGN Expr
-   51     | • Expr PLUS Expr
-   52     | • Expr MINUS Expr
-   53     | • Expr MUL Expr
-   54     | • Expr DIV Expr
-   55     | • Expr MOD Expr
-   56     | • Expr OR Expr
-   57     | • Expr AND Expr
-   58     | • Expr BITWISEAND Expr
-   59     | • Expr BITWISEOR Expr
-   60     | • Expr BITWISEXOR Expr
-   61     | • Expr EQ Expr
-   62     | • Expr NE Expr
-   63     | • Expr LE Expr
-   64     | • Expr GE Expr
-   65     | • Expr LT Expr
-   66     | • Expr GT Expr
-   67     | • PLUS Expr
-   68     | • MINUS Expr
-   69     | • NOT Expr
-   70     | • IDENTIFIER LPAR RPAR
-   71     | • IDENTIFIER LPAR Expr_comma RPAR
-   72     | • IDENTIFIER
-   73     | • NATURAL
-   74     | • CHRLIT
-   75     | • DECIMAL
-   76     | • LPAR Expr_comma RPAR
+   13 DeclarationAndStatements: Statement •
 
-    error       shift, and go to state 1
-    LBRACE      shift, and go to state 40
-    LPAR        shift, and go to state 27
-    MINUS       shift, and go to state 28
-    NOT         shift, and go to state 29
-    PLUS        shift, and go to state 30
-    SEMI        shift, and go to state 42
-    CHR         shift, and go to state 2
-    WHILE       shift, and go to state 43
-    IF          shift, and go to state 44
-    INT         shift, and go to state 3
-    SHORT       shift, and go to state 4
-    DOUBLE      shift, and go to state 5
-    RETURN      shift, and go to state 45
-    VOID        shift, and go to state 6
-    IDENTIFIER  shift, and go to state 31
-    DECIMAL     shift, and go to state 32
-    NATURAL     shift, and go to state 33
-    CHRLIT      shift, and go to state 34
-
-    RBRACE  reduce using rule 13 (DeclarationAndStatements)
-
-    DeclarationAndStatements  go to state 92
-    Declaration               go to state 47
-    TypeSpec                  go to state 48
-    Statement                 go to state 49
-    Expr_comma                go to state 50
-    Expr                      go to state 36
+    $default  reduce using rule 13 (DeclarationAndStatements)
 
 
 State 50
@@ -1265,7 +1180,7 @@ State 51
    30 Declarator: • IDENTIFIER ASSIGN Expr_comma
    31           | • IDENTIFIER
 
-    IDENTIFIER  shift, and go to state 91
+    IDENTIFIER  shift, and go to state 92
 
     Declarator  go to state 94
 
@@ -2538,12 +2453,19 @@ State 89
 
 State 90
 
-   12 DeclarationAndStatements: Declaration DeclarationAndStatements •
+   12 DeclarationAndStatements: DeclarationAndStatements Declaration •
 
     $default  reduce using rule 12 (DeclarationAndStatements)
 
 
 State 91
+
+   11 DeclarationAndStatements: DeclarationAndStatements Statement •
+
+    $default  reduce using rule 11 (DeclarationAndStatements)
+
+
+State 92
 
    30 Declarator: IDENTIFIER • ASSIGN Expr_comma
    31           | IDENTIFIER •  [COMMA, SEMI]
@@ -2551,13 +2473,6 @@ State 91
     ASSIGN  shift, and go to state 21
 
     $default  reduce using rule 31 (Declarator)
-
-
-State 92
-
-   11 DeclarationAndStatements: Statement DeclarationAndStatements •
-
-    $default  reduce using rule 11 (DeclarationAndStatements)
 
 
 State 93
