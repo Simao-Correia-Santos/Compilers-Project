@@ -33,7 +33,7 @@
 
 
 %%
-Program: FunctionsAndDeclarations {;}
+Program: FunctionsAndDeclarations {$$ = program = newnode(Program, NULL);}
 
 FunctionsAndDeclarations: FunctionsAndDeclarations FunctionDefinition {;}
                         |FunctionsAndDeclarations FunctionDeclaration {;}
@@ -49,8 +49,8 @@ FunctionBody: LBRACE DeclarationAndStatements RBRACE {;}
             |LBRACE RBRACE {;}
             ;
 
-DeclarationAndStatements: Statement DeclarationAndStatements {;}
-                         |Declaration DeclarationAndStatements {;}
+DeclarationAndStatements: DeclarationAndStatements Statement {;}
+                         |DeclarationAndStatements Declaration {;}
                          |Statement {;}
                          |Declaration {;}
                          ;
