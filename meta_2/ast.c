@@ -9,6 +9,7 @@ struct node *newnode(enum category category, char *token) {
     new->children_count = 0;
     new->category = category;
     new->token = token;
+    new->father = NULL;
     new->children = malloc(sizeof(struct node_list));
     new->children->node = NULL;
     new->children->next = NULL;
@@ -19,6 +20,7 @@ struct node *newnode(enum category category, char *token) {
 void addchild(struct node *parent, struct node *child) {
     struct node_list *new = malloc(sizeof(struct node_list));
     parent->children_count++;
+    child->father = parent;
     new->node = child;
     new->next = NULL;
     struct node_list *children = parent->children;
@@ -27,6 +29,12 @@ void addchild(struct node *parent, struct node *child) {
     children->next = new;
 }
 
+
+// add a brother
+void addBrother(struct node *irmao_velho, struct node *irmao_novo){
+    struct node *father = irmao_velho->father;
+    addchild(father, irmao_novo);
+} 
 
 // show AST tree
 void show_ast_tree(struct node *node, int point){

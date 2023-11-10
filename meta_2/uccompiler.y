@@ -33,56 +33,56 @@
 
 
 %%
-Program: FunctionsAndDeclarations {$$ = program = newnode(Program, NULL);}
+Program: FunctionsAndDeclarations {$$ = program = newnode(Program, NULL); addchild($$, $1);}
 
-FunctionsAndDeclarations: FunctionsAndDeclarations FunctionDefinition {;}
-                        |FunctionsAndDeclarations FunctionDeclaration {;}
-                        |FunctionsAndDeclarations Declaration {;}
-                        |FunctionDefinition {;}
-                        |FunctionDeclaration {;}
-                        |Declaration {;}
+FunctionsAndDeclarations: FunctionsAndDeclarations FunctionDefinition {$$ = $1; addchild($$, $2);}
+                        |FunctionsAndDeclarations FunctionDeclaration {$$ = $1; addchild($$, $2);}
+                        |FunctionsAndDeclarations Declaration {$$ = $1; addchild($$, $2);}
+                        |FunctionDefinition {$$ = $1;}
+                        |FunctionDeclaration {$$ = $1;}
+                        |Declaration {$$ = $1;}
                         ;
 
-FunctionDefinition: TypeSpec FunctionDeclarator FunctionBody {;}
+FunctionDefinition: TypeSpec FunctionDeclarator FunctionBody {$$ = newnode(FuncDefinition, NULL); addchild($$, $1); addchild($$, $2); addchild($$, $3);}
 
-FunctionBody: LBRACE DeclarationAndStatements RBRACE {;}
-            |LBRACE RBRACE {;}
+FunctionBody: LBRACE DeclarationAndStatements RBRACE {$$ = newnode(FuncBody, NULL); addchild($$, $2);}
+            |LBRACE RBRACE {$$ = newnode(FuncBody, NULL);}
             ;
 
-DeclarationAndStatements: DeclarationAndStatements Statement {;}
-                         |DeclarationAndStatements Declaration {;}
-                         |Statement {;}
-                         |Declaration {;}
+DeclarationAndStatements: DeclarationAndStatements Statement {$$ = $1; addchild($$, $2);}
+                         |DeclarationAndStatements Declaration {$$ = $1; addchild($$, $2);}
+                         |Statement {$$ = $1;}
+                         |Declaration {$$ = $1;}
                          ;
 
-FunctionDeclaration: TypeSpec FunctionDeclarator SEMI {;}
+FunctionDeclaration: TypeSpec FunctionDeclarator SEMI {$$ = newnode(FuncDeclaration, NULL); addchild($$, $1); addchild($$, $2);}
 
-FunctionDeclarator: IDENTIFIER LPAR ParameterList RPAR {;}
+FunctionDeclarator: IDENTIFIER LPAR ParameterList RPAR {$$ = newnode(Identifier, $1); addBrother($$, $3);}
 
-ParameterList: ParameterDeclaration {;}
-              |ParameterList COMMA ParameterDeclaration {;}
+ParameterList: ParameterDeclaration {$$ = newnode(ParamList, NULL); addchild($$, $1);}
+              |ParameterList COMMA ParameterDeclaration {$$ = $1; addchild($$, $3);}
               ;
 
-ParameterDeclaration: TypeSpec IDENTIFIER {;}
-                     |TypeSpec {;}
+ParameterDeclaration: TypeSpec IDENTIFIER {$$ = newnode(ParamDeclaration, NULL); addchild($$, $1); addchild($$, newnode(Identifier, $2));}
+                     |TypeSpec {$$ = newnode(ParamDeclaration, NULL); addchild($$, $1);}
                      ;
 
-Declaration: TypeSpec Declarator AuxDeclaration SEMI {;}
+Declaration: TypeSpec Declarator AuxDeclaration SEMI {$$ = newnode(Declaration, NULL); addchild($$, $1); addchild($$, $2); addchild($$, $3);}
             |error SEMI {;}
 
-AuxDeclaration: AuxDeclaration COMMA Declarator {;}
+AuxDeclaration: AuxDeclaration COMMA Declarator {$$ = $1; addBrother($$, $3);}
                |{}; 
                ;
 
-TypeSpec: CHR {;}
-         |INT {;}
-         |VOID {;}
-         |SHORT {;}
-         |DOUBLE {;}
+TypeSpec: CHR {$$ = newnode(Char, NULL);}
+         |INT {$$ = newnode(Int, NULL);}
+         |VOID {$$ = newnode(Void, NULL);}
+         |SHORT {$$ = newnode(Short, NULL);}
+         |DOUBLE {$$ = newnode(Double, NULL);}
          ;
 
-Declarator: IDENTIFIER ASSIGN Expr_comma {;}
-           |IDENTIFIER {;}
+Declarator: IDENTIFIER ASSIGN Expr_comma {$$ = newnode(Identifier, $1); addBrother($$, $3);}
+           |IDENTIFIER {$$ = newnode(Identifier, $1);}
            ;
 
 Statement_error: error SEMI {$$ = newnode(Null, NULL);}
@@ -133,7 +133,7 @@ Expr:    IDENTIFIER LPAR error RPAR {;}
         |NOT Expr {$$ = newnode(Not, NULL); addchild($$, $2);}
         |IDENTIFIER LPAR RPAR {$$ = newnode(Call, NULL); addchild($$, newnode(Identifier, $1));}
         |IDENTIFIER LPAR Expr_comma RPAR {$$ = newnode(Call, NULL); addchild($$, newnode(Identifier, $1)); addchild($$, $3);}
-        |IDENTIFIER  {$$ = newnode(Identifier, $1);}
+        |IDENTIFIER {$$ = newnode(Identifier, $1);}
         |NATURAL {$$ = newnode(Natural, $1);}
         |CHRLIT {$$ = newnode(Chrlit, $1);}
         |DECIMAL {$$ = newnode(Decimal, $1);}

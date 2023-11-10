@@ -7,6 +7,7 @@ struct node {
     int children_count;
     enum category category;
     char *token;
+    struct node *father;
     struct node_list *children;
 };
 
@@ -18,6 +19,8 @@ struct node_list {
 struct node *newnode(enum category category, char *token);
 
 void addchild(struct node *parent, struct node *child);
+
+void addBrother(struct node *irmao_velho, struct node *irmao_novo);
 
 void show_ast_tree(struct node *node, int underline);
 
