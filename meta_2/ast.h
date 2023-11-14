@@ -7,7 +7,7 @@ struct node {
     int children_count;
     enum category category;
     char *token;
-    struct node *father;
+    struct node *brother;
     struct node_list *children;
 };
 

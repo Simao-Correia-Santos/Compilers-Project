@@ -1447,13 +1447,13 @@ yyreduce:
 
   case 12: /* DeclarationAndStatements: DeclarationAndStatements Statement  */
 #line 52 "uccompiler.y"
-                                                             {(yyval.node) = (yyvsp[-1].node); addchild((yyval.node), (yyvsp[0].node));}
+                                                             {(yyval.node) = (yyvsp[-1].node); addBrother((yyval.node), (yyvsp[0].node));}
 #line 1452 "y.tab.c"
     break;
 
   case 13: /* DeclarationAndStatements: DeclarationAndStatements Declaration  */
 #line 53 "uccompiler.y"
-                                                               {(yyval.node) = (yyvsp[-1].node); addchild((yyval.node), (yyvsp[0].node));}
+                                                               {(yyval.node) = (yyvsp[-1].node); addBrother((yyval.node), (yyvsp[0].node));}
 #line 1458 "y.tab.c"
     break;
 
@@ -1489,7 +1489,7 @@ yyreduce:
 
   case 19: /* ParameterList: ParameterList COMMA ParameterDeclaration  */
 #line 63 "uccompiler.y"
-                                                        {(yyval.node) = (yyvsp[-2].node); addchild((yyval.node), (yyvsp[0].node));}
+                                                        {(yyval.node) = (yyvsp[-2].node); addBrother((yyval.node), (yyvsp[0].node));}
 #line 1494 "y.tab.c"
     break;
 
@@ -1657,7 +1657,7 @@ yyreduce:
 
   case 47: /* Expr_comma: Expr_comma COMMA Expr  */
 #line 108 "uccompiler.y"
-                                  {(yyval.node) = newnode(Comma, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
+                                  {(yyval.node) =(yyvsp[-2].node); addBrother((yyval.node), (yyvsp[0].node));}
 #line 1662 "y.tab.c"
     break;
 
@@ -1837,7 +1837,7 @@ yyreduce:
 
   case 77: /* Expr: LPAR Expr_comma RPAR  */
 #line 140 "uccompiler.y"
-                              {(yyval.node) = (yyvsp[-1].node);}
+                              {(yyval.node) = newnode(Comma, NULL); addchild((yyval.node), (yyvsp[-1].node));}
 #line 1842 "y.tab.c"
     break;
 

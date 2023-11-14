@@ -8,8 +8,8 @@ struct node *newnode(enum category category, char *token) {
     struct node *new = malloc(sizeof(struct node));
     new->children_count = 0;
     new->category = category;
+    new->brother = NULL;
     new->token = token;
-    new->father = NULL;
     new->children = malloc(sizeof(struct node_list));
     new->children->node = NULL;
     new->children->next = NULL;
@@ -20,21 +20,25 @@ struct node *newnode(enum category category, char *token) {
 void addchild(struct node *parent, struct node *child) {
     struct node_list *new = malloc(sizeof(struct node_list));
     parent->children_count++;
-    child->father = parent;
     new->node = child;
     new->next = NULL;
     struct node_list *children = parent->children;
     while(children->next != NULL)
         children = children->next;
     children->next = new;
+    if(child->brother != NULL){
+        addchild(parent, child->brother);
+    }
 }
-
 
 // add a brother
 void addBrother(struct node *irmao_velho, struct node *irmao_novo){
-    struct node *father = irmao_velho->father;
-    addchild(father, irmao_novo);
-} 
+    struct  node *aux = irmao_velho;
+    while (aux->brother != NULL){
+        aux = aux->brother;
+    }
+    aux->brother = irmao_novo;
+}
 
 // show AST tree
 void show_ast_tree(struct node *node, int point){
@@ -48,12 +52,12 @@ void show_ast_tree(struct node *node, int point){
         printf("%s(%d)\n", category_buffer, node->children_count);
     }
     else{
-        printf("%s(%d)(%s)\n", category_buffer, node->children_count, node->token);
+        printf("%s(%s)(%d)\n", category_buffer, node->token, node->children_count);
     }
     struct node_list *child = node->children;
     while(child->next != NULL){
         child = child->next;
-        show_ast_tree(child->node, point += 1);
+        show_ast_tree(child->node, point + 1);
     }
 }
 

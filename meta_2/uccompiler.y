@@ -49,8 +49,8 @@ FunctionBody: LBRACE DeclarationAndStatements RBRACE {$$ = newnode(FuncBody, NUL
             |LBRACE RBRACE {$$ = newnode(FuncBody, NULL);}
             ;
 
-DeclarationAndStatements: DeclarationAndStatements Statement {$$ = $1; addchild($$, $2);}
-                         |DeclarationAndStatements Declaration {$$ = $1; addchild($$, $2);}
+DeclarationAndStatements: DeclarationAndStatements Statement {$$ = $1; addBrother($$, $2);}
+                         |DeclarationAndStatements Declaration {$$ = $1; addBrother($$, $2);}
                          |Statement {$$ = $1;}
                          |Declaration {$$ = $1;}
                          ;
@@ -60,7 +60,7 @@ FunctionDeclaration: TypeSpec FunctionDeclarator SEMI {$$ = newnode(FuncDeclarat
 FunctionDeclarator: IDENTIFIER LPAR ParameterList RPAR {$$ = newnode(Identifier, $1); addBrother($$, $3);}
 
 ParameterList: ParameterDeclaration {$$ = newnode(ParamList, NULL); addchild($$, $1);}
-              |ParameterList COMMA ParameterDeclaration {$$ = $1; addchild($$, $3);}
+              |ParameterList COMMA ParameterDeclaration {$$ = $1; addBrother($$, $3);}
               ;
 
 ParameterDeclaration: TypeSpec IDENTIFIER {$$ = newnode(ParamDeclaration, NULL); addchild($$, $1); addchild($$, newnode(Identifier, $2));}
@@ -105,7 +105,7 @@ Statement: LBRACE AuxStatement RBRACE {$$ = $2;}
           |RETURN SEMI {$$ = newnode(Return, NULL); addchild($$, newnode(Null, NULL));}
           ;
 
-Expr_comma: Expr_comma COMMA Expr {$$ = newnode(Comma, NULL); addchild($$, $1); addchild($$, $3);}
+Expr_comma: Expr_comma COMMA Expr {$$ =$1; addBrother($$, $3);}
            |Expr {$$ = $1;}
            ;
 
@@ -137,5 +137,5 @@ Expr:    IDENTIFIER LPAR error RPAR {;}
         |NATURAL {$$ = newnode(Natural, $1);}
         |CHRLIT {$$ = newnode(Chrlit, $1);}
         |DECIMAL {$$ = newnode(Decimal, $1);}
-        |LPAR Expr_comma RPAR {$$ = $2;}
+        |LPAR Expr_comma RPAR {$$ = newnode(Comma, NULL); addchild($$, $2);}
         ;
