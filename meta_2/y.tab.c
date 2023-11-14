@@ -1489,7 +1489,7 @@ yyreduce:
 
   case 19: /* ParameterList: ParameterList COMMA ParameterDeclaration  */
 #line 63 "uccompiler.y"
-                                                        {(yyval.node) = (yyvsp[-2].node); addBrother((yyval.node), (yyvsp[0].node));}
+                                                        {(yyval.node) = (yyvsp[-2].node); addchild((yyval.node), (yyvsp[0].node));}
 #line 1494 "y.tab.c"
     break;
 

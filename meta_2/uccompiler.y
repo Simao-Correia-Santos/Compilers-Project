@@ -60,7 +60,7 @@ FunctionDeclaration: TypeSpec FunctionDeclarator SEMI {$$ = newnode(FuncDeclarat
 FunctionDeclarator: IDENTIFIER LPAR ParameterList RPAR {$$ = newnode(Identifier, $1); addBrother($$, $3);}
 
 ParameterList: ParameterDeclaration {$$ = newnode(ParamList, NULL); addchild($$, $1);}
-              |ParameterList COMMA ParameterDeclaration {$$ = $1; addBrother($$, $3);}
+              |ParameterList COMMA ParameterDeclaration {$$ = $1; addchild($$, $3);}
               ;
 
 ParameterDeclaration: TypeSpec IDENTIFIER {$$ = newnode(ParamDeclaration, NULL); addchild($$, $1); addchild($$, newnode(Identifier, $2));}
