@@ -40,6 +40,15 @@ void addBrother(struct node *irmao_velho, struct node *irmao_novo){
     aux->brother = irmao_novo;
 }
 
+//Adiciona filho no inicio da lista
+void prefer_kid(struct node* parent, struct node* son){
+    struct node_list *new = malloc(sizeof(struct node_list));
+    parent->children_count++;
+    new->node = son;
+    new->next = parent->children;
+    //parent->children = new;
+}
+
 // show AST tree
 void show_ast_tree(struct node *node, int point){
     char category_buffer[20];
@@ -193,6 +202,6 @@ void get_category_name(int pos, char *category_buffer){
             break;
         case 43:
             strcpy(category_buffer, "Return");
-            break;   
+            break; 
     }
 }
