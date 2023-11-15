@@ -44,15 +44,14 @@ void addBrother(struct node *irmao_velho, struct node *irmao_novo){
 void show_ast_tree(struct node *node, int point){
     char category_buffer[20];
     get_category_name(node->category, category_buffer);
-
     for (int i = 0; i < point; i++){
         printf("..");
     }
     if (node->token == NULL){
-        printf("%s(%d)\n", category_buffer, node->children_count);
+        printf("%s\n", category_buffer);
     }
     else{
-        printf("%s(%s)(%d)\n", category_buffer, node->token, node->children_count);
+        printf("%s(%s)\n", category_buffer, node->token);
     }
     struct node_list *child = node->children;
     while(child->next != NULL){
@@ -192,5 +191,8 @@ void get_category_name(int pos, char *category_buffer){
         case 42:
             strcpy(category_buffer, "Return");
             break;
+        case 43:
+            strcpy(category_buffer, "Return");
+            break;   
     }
 }

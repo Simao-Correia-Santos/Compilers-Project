@@ -8,7 +8,7 @@
 
 %token BITWISEAND BITWISEOR BITWISEXOR AND ASSIGN MUL COMMA DIV EQ GE GT LBRACE LE LPAR LT MINUS MOD NE NOT OR PLUS RBRACE RPAR SEMI CHR ELSE WHILE IF INT SHORT DOUBLE RETURN VOID
 %token<lexeme> IDENTIFIER DECIMAL NATURAL CHRLIT RESERVED
-%type<node> Program FunctionsAndDeclarations FunctionDefinition FunctionBody DeclarationAndStatements FunctionDeclaration FunctionDeclarator ParameterList ParameterDeclaration Declaration AuxDeclaration TypeSpec Declarator Statement AuxStatement Expr Expr_comma Statement_error
+%type<node> Program FunctionsAndDeclarations FunctionDefinition FunctionBody DeclarationAndStatements FunctionDeclaration FunctionDeclarator ParameterList ParameterDeclaration Declaration AuxDeclaration TypeSpec Declarator Statement AuxStatement Expr Expr_comma Statement_error 
 
 %union{
      char* lexeme;
@@ -67,11 +67,11 @@ ParameterDeclaration: TypeSpec IDENTIFIER {$$ = newnode(ParamDeclaration, NULL);
                      |TypeSpec {$$ = newnode(ParamDeclaration, NULL); addchild($$, $1);}
                      ;
 
-Declaration: TypeSpec Declarator AuxDeclaration SEMI {$$ = newnode(Declaration, NULL); addchild($$, $1); addchild($$, $2); addchild($$, $3);}
-            |error SEMI {;}
+Declaration: TypeSpec AuxDeclaration SEMI {$$ = newnode(Declaration, NULL); addchild($$, $1); addchild($$, $2);}
+             |error SEMI {$$ = newnode(Error, NULL);}
 
 AuxDeclaration: AuxDeclaration COMMA Declarator {$$ = $1; addBrother($$, $3);}
-               |{}; 
+               |Declarator{$$ = $1;} 
                ;
 
 TypeSpec: CHR {$$ = newnode(Char, NULL);}
@@ -89,14 +89,14 @@ Statement_error: error SEMI {$$ = newnode(Null, NULL);}
                 |Statement {$$ = $1;}
                 ;
 
-AuxStatement: AuxStatement Statement_error {$$ = newnode(StatList, NULL); addchild($$, $2);}
-             | Statement_error{$$ = $1;}
+AuxStatement: AuxStatement Statement_error {$$ = $1; addBrother($$, $2);}
+             |Statement_error{$$ = $1;}
              ;
 
-Statement: LBRACE AuxStatement RBRACE {$$ = $2;} 
-          |SEMI {;}
-          |LBRACE error RBRACE {;}
-          |LBRACE RBRACE {;}
+Statement: LBRACE AuxStatement RBRACE {$$ = newnode(StatList, NULL);} 
+          |SEMI {$$ = newnode(Null, NULL);}
+          |LBRACE error RBRACE {$$ = newnode(Error, NULL);}
+          |LBRACE RBRACE {$$ = newnode(Null, NULL);}
           |Expr_comma SEMI {$$ = $1;}
           |IF LPAR Expr_comma RPAR Statement_error ELSE Statement_error {$$ = newnode(If, NULL); addchild($$, $3); addchild($$, $5); addchild($$, $7);}
           |IF LPAR Expr_comma RPAR Statement_error %prec ELSE {$$ = newnode(If, NULL); addchild($$, $3); addchild($$, $5); addchild($$, newnode(Null, NULL));}
@@ -105,12 +105,12 @@ Statement: LBRACE AuxStatement RBRACE {$$ = $2;}
           |RETURN SEMI {$$ = newnode(Return, NULL); addchild($$, newnode(Null, NULL));}
           ;
 
-Expr_comma: Expr_comma COMMA Expr {$$ =$1; addBrother($$, $3);}
+Expr_comma: Expr_comma COMMA Expr {$$ = $1; addBrother($$, $3);}
            |Expr {$$ = $1;}
            ;
 
-Expr:    IDENTIFIER LPAR error RPAR {;}
-        |LPAR error RPAR {;}
+Expr:    IDENTIFIER LPAR error RPAR {$$ = newnode(Error, NULL);}
+        |LPAR error RPAR {$$ = newnode(Error, NULL);}
         |Expr ASSIGN Expr {$$ = newnode(Store, NULL); addchild($$, $1); addchild($$, $3);}
         |Expr PLUS Expr {$$ = newnode(Add, NULL); addchild($$, $1); addchild($$, $3);}
         |Expr MINUS Expr {$$ = newnode(Sub, NULL); addchild($$, $1); addchild($$, $3);}

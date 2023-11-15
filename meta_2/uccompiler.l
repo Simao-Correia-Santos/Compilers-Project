@@ -118,7 +118,7 @@ int main(int argc, char const *argv[]) {
         pass_tokens = 1;
         yyparse();
         if (syntax_errors == 0){
-            show_ast_tree(program, 0);
+            show_ast_tree(program, 0); 
         }
     }
     if (argc == 1){
