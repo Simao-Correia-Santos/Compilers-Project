@@ -168,7 +168,7 @@ void get_category_name(int pos, char *category_buffer){
             strcpy(category_buffer, "Char");
             break;
         case 32:
-            strcpy(category_buffer, "Chrlit");
+            strcpy(category_buffer, "ChrLit");
             break;
         case 33:
             strcpy(category_buffer, "Identifier");

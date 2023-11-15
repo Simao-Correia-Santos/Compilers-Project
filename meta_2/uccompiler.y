@@ -10,7 +10,7 @@
 
 %token BITWISEAND BITWISEOR BITWISEXOR AND ASSIGN MUL COMMA DIV EQ GE GT LBRACE LE LPAR LT MINUS MOD NE NOT OR PLUS RBRACE RPAR SEMI CHR ELSE WHILE IF INT SHORT DOUBLE RETURN VOID
 %token<lexeme> IDENTIFIER DECIMAL NATURAL CHRLIT RESERVED
-%type<node> Program FunctionsAndDeclarations FunctionDefinition FunctionBody DeclarationAndStatements FunctionDeclaration FunctionDeclarator ParameterList ParameterDeclaration Declaration AuxDeclaration TypeSpec Declarator Statement AuxStatement Expr Expr_comma Statement_error
+%type<node> Program FunctionsAndDeclarations FunctionDefinition FunctionBody DeclarationAndStatements FunctionDeclaration FunctionDeclarator ParameterList ParameterDeclaration Declaration AuxDeclaration TypeSpec Declarator Statement AuxStatement Expr Expr_comma Statement_error Expr_call
 
 %union{
      char* lexeme;
@@ -62,7 +62,7 @@ FunctionDeclaration: TypeSpec FunctionDeclarator SEMI {$$ = newnode(FuncDeclarat
 FunctionDeclarator: IDENTIFIER LPAR ParameterList RPAR {$$ = newnode(Identifier, $1); addBrother($$, $3);}
 
 ParameterList: ParameterDeclaration {$$ = newnode(ParamList, NULL); addchild($$, $1);}
-              |ParameterList COMMA ParameterDeclaration {$$ = $1; addchild($$, $3);}
+              |ParameterList COMMA ParameterDeclaration {$$ = $1; if ($1->category == 4) addchild($$, $3); else addBrother($$, $3);}
               ;
 
 ParameterDeclaration: TypeSpec IDENTIFIER {$$ = newnode(ParamDeclaration, NULL); addchild($$, $1); addchild($$, newnode(Identifier, $2));}
@@ -118,7 +118,7 @@ Statement: LBRACE AuxStatement RBRACE {if (statement_list_check == 1){
                                                                          else {addchild($$, newnode(Null, NULL));}
                                                                          if ($7 != NULL) {addchild($$, $7);}
                                                                          else {addchild($$, newnode(Null, NULL));}
-                                                                         }
+                                                                        }
 
           |IF LPAR Expr_comma RPAR Statement_error %prec ELSE {
                                                                $$ = newnode(If, NULL); 
@@ -126,18 +126,25 @@ Statement: LBRACE AuxStatement RBRACE {if (statement_list_check == 1){
                                                                if ($5 != NULL) {addchild($$, $5);}
                                                                else {addchild($$, newnode(Null, NULL));} 
                                                                addchild($$, newnode(Null, NULL));
-                                                               }
+                                                              }
           |WHILE LPAR Expr_comma RPAR Statement_error {
                                                        $$ = newnode(While, NULL); 
                                                        addchild($$, $3); 
                                                        if($5 != NULL) {addchild($$, $5);}
                                                        else {addchild($$, newnode(Null, NULL));}
-                                                       }
+                                                      }
           |RETURN Expr_comma SEMI {$$ = newnode(Return, NULL); addchild($$, $2);}
           |RETURN SEMI {$$ = newnode(Return, NULL); addchild($$, newnode(Null, NULL));}
           ;
 
-Expr_comma: Expr_comma COMMA Expr {$$ = $1; addBrother($$, $3);}
+Expr_call: Expr_call COMMA Expr {$$ = $1; addBrother($$, $3);}
+          |Expr {$$ = $1;}
+          ;
+
+Expr_comma: Expr_comma COMMA Expr {$$ = newnode(Comma, NULL); 
+                                   if ($1->category == 25) addBrother($$, $1);
+                                   else addchild($$, $1); 
+                                   addchild($$, $3);}
            |Expr {$$ = $1;}
            ;
 
@@ -164,10 +171,10 @@ Expr:    IDENTIFIER LPAR error RPAR {$$ = newnode(Error, NULL);}
         |MINUS Expr %prec NOT {$$ = newnode(Minus, NULL); addchild($$, $2);}
         |NOT Expr {$$ = newnode(Not, NULL); addchild($$, $2);}
         |IDENTIFIER LPAR RPAR {$$ = newnode(Call, NULL); addchild($$, newnode(Identifier, $1));}
-        |IDENTIFIER LPAR Expr_comma RPAR {$$ = newnode(Call, NULL); addchild($$, newnode(Identifier, $1)); addchild($$, $3);}
+        |IDENTIFIER LPAR Expr_call RPAR {$$ = newnode(Call, NULL); addchild($$, newnode(Identifier, $1)); addchild($$, $3);}
         |IDENTIFIER {$$ = newnode(Identifier, $1);}
         |NATURAL {$$ = newnode(Natural, $1);}
         |CHRLIT {$$ = newnode(Chrlit, $1);}
         |DECIMAL {$$ = newnode(Decimal, $1);}
-        |LPAR Expr_comma RPAR {$$ = newnode(Comma, NULL); addchild($$, $2);}
+        |LPAR Expr_comma RPAR {$$ = $2;}
         ;
