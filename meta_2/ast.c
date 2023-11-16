@@ -55,23 +55,19 @@ void insert_typespec(struct node* parent, struct node* son){
 
 //Dealocate memory
 void deallocate_memory(struct node* node){
-    if(node != NULL) {
-        struct node_list *child = node->children;
-        while(child != NULL) {
-            deallocate_memory(child->node);
-            struct node_list *tmp = child;
-            child = child->next;
-            free(tmp);
-        }
-        if(node->token != NULL)
-            free(node->token);
-        free(node);
+   struct node_list *current_child = node->children->next;
+    while (current_child != NULL) {
+        struct node_list *next_child = current_child->next;
+        deallocate_memory(current_child->node);
+        free(current_child);
+        current_child = next_child;
     }
+    if (node->token != NULL) free(node->token);
+    free(node);
 }
 
 // show AST tree
 void show_ast_tree(struct node *node, int point){
-
     char category_buffer[20];
 
     get_category_name(node->category, category_buffer);

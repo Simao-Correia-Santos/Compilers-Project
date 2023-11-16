@@ -70,8 +70,8 @@ ParameterDeclaration: TypeSpec IDENTIFIER {$$ = newnode(ParamDeclaration, NULL);
                      ;
 
 Declaration: TypeSpec AuxDeclaration SEMI {
-                                            aux = $2;
-                                            $$ = aux;
+                                            $$ = $2;
+                                            aux = $$;
                                             while (aux != NULL){
                                               insert_typespec(aux, $1);
                                               aux = aux->brother;

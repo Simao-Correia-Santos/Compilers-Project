@@ -1515,8 +1515,8 @@ yyreduce:
   case 22: /* Declaration: TypeSpec AuxDeclaration SEMI  */
 #line 72 "uccompiler.y"
                                           {
-                                            aux = (yyvsp[-1].node);
-                                            (yyval.node) = aux;
+                                            (yyval.node) = (yyvsp[-1].node);
+                                            aux = (yyval.node);
                                             while (aux != NULL){
                                               insert_typespec(aux, (yyvsp[-2].node));
                                               aux = aux->brother;
