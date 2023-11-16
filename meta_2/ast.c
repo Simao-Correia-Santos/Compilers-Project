@@ -18,6 +18,8 @@ struct node *newnode(enum category category, char *token) {
 
 // append a node to the list of children of the parent node
 void addchild(struct node *parent, struct node *child) {
+    if (parent == NULL || child == NULL) return;
+
     struct node_list *new = malloc(sizeof(struct node_list));
     parent->children_count++;
     new->node = child;
@@ -33,6 +35,8 @@ void addchild(struct node *parent, struct node *child) {
 
 // add a brother
 void addBrother(struct node *irmao_velho, struct node *irmao_novo){
+    if (irmao_novo == NULL || irmao_velho == NULL) return;
+
     struct  node *aux = irmao_velho;
     while (aux->brother != NULL){
         aux = aux->brother;
@@ -41,17 +45,19 @@ void addBrother(struct node *irmao_velho, struct node *irmao_novo){
 }
 
 //Adiciona filho no inicio da lista
-void prefer_kid(struct node* parent, struct node* son){
+void insert_typespec(struct node* parent, struct node* son){
     struct node_list *new = malloc(sizeof(struct node_list));
     parent->children_count++;
     new->node = son;
-    new->next = parent->children;
-    //parent->children = new;
+    new->next = parent->children->next;
+    parent->children->next = new;
 }
 
 // show AST tree
 void show_ast_tree(struct node *node, int point){
+
     char category_buffer[20];
+
     get_category_name(node->category, category_buffer);
     for (int i = 0; i < point; i++){
         printf("..");

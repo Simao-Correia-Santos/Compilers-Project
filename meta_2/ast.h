@@ -22,7 +22,7 @@ void addchild(struct node *parent, struct node *child);
 
 void addBrother(struct node *irmao_velho, struct node *irmao_novo);
 
-void prefer_kid(struct node *parent, struct node *son);
+void insert_typespec(struct node *parent, struct node *son);
 
 void show_ast_tree(struct node *node, int underline);
 

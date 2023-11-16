@@ -51,7 +51,7 @@ FunctionBody: LBRACE DeclarationAndStatements RBRACE {$$ = newnode(FuncBody, NUL
             |LBRACE RBRACE {$$ = newnode(FuncBody, NULL);}
             ;
 
-DeclarationAndStatements: DeclarationAndStatements Statement {$$ = $1; addBrother($$, $2);}
+DeclarationAndStatements: DeclarationAndStatements Statement {if($1 == NULL) $$ = $2; else {$$ = $1; addBrother($$, $2);}}
                          |DeclarationAndStatements Declaration {$$ = $1; addBrother($$, $2);}
                          |Statement {$$ = $1;}
                          |Declaration {$$ = $1;}
@@ -73,7 +73,7 @@ Declaration: TypeSpec AuxDeclaration SEMI {
                                             aux = $2;
                                             $$ = aux;
                                             while (aux != NULL){
-                                              prefer_kid(aux, $1);
+                                              insert_typespec(aux, $1);
                                               aux = aux->brother;
                                             }
                                           }
@@ -98,15 +98,17 @@ Statement_error: error SEMI {$$ = newnode(Error, NULL);}
                 |Statement {$$ = $1;}
                 ;
 
-AuxStatement: AuxStatement Statement_error {$$ = $1; addBrother($$, $2); statement_list_check = 1;}
+AuxStatement: AuxStatement Statement_error {if($1 != NULL) {$$ = $1; addBrother($$, $2); statement_list_check = 1;} else $$ = $2;}
              |Statement_error{$$ = $1; statement_list_check = 0;}
              ;
 
-Statement: LBRACE AuxStatement RBRACE {if (statement_list_check == 1){
-                                         $$ = newnode(StatList, NULL);
-                                         addchild($$, $2);
-                                      }                             
-                                          else $$ = $2;} 
+Statement: LBRACE AuxStatement RBRACE {
+                                        if (statement_list_check == 1){
+                                        $$ = newnode(StatList, NULL);
+                                        addchild($$, $2);
+                                        }                             
+                                        else $$ = $2;
+                                      } 
           |SEMI {$$ = NULL;}
           |LBRACE error RBRACE {$$ = newnode(Error, NULL);}
           |LBRACE RBRACE {$$ = NULL;}
