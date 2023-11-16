@@ -55,7 +55,7 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 
 "&"                                                { if(tokens) printf("BITWISEAND\n"); if(pass_tokens) return BITWISEAND; }
 "|"                                                { if(tokens) printf("BITWISEOR\n"); if(pass_tokens) return BITWISEOR; }
-"^"                                                { if(tokens) printf("BITWISEXOR\n"); if(pass_tokens) return BITWISEOR; }
+"^"                                                { if(tokens) printf("BITWISEXOR\n"); if(pass_tokens) return BITWISEXOR; }
 "&&"                                               { if(tokens) printf("AND\n"); if(pass_tokens) return AND; }
 "="                                                { if(tokens) printf("ASSIGN\n"); if(pass_tokens) return ASSIGN; }
 "*"                                                { if(tokens) printf("MUL\n"); if(pass_tokens) return MUL; }

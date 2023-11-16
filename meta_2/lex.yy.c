@@ -1090,7 +1090,7 @@ YY_RULE_SETUP
 case 21:
 YY_RULE_SETUP
 #line 58 "uccompiler.l"
-{ if(tokens) printf("BITWISEXOR\n"); if(pass_tokens) return BITWISEOR; }
+{ if(tokens) printf("BITWISEXOR\n"); if(pass_tokens) return BITWISEXOR; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
