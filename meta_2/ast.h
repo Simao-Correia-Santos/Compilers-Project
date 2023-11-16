@@ -24,6 +24,8 @@ void addBrother(struct node *irmao_velho, struct node *irmao_novo);
 
 void insert_typespec(struct node *parent, struct node *son);
 
+void deallocate_memory(struct node* node);
+
 void show_ast_tree(struct node *node, int underline);
 
 void get_category_name(int pos, char *category_buffer);

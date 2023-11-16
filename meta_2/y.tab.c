@@ -690,9 +690,9 @@ static const yytype_uint8 yyrline[] =
       68,    69,    72,    80,    82,    83,    86,    87,    88,    89,
       90,    93,    94,    97,    98,   101,   102,   105,   112,   113,
      114,   115,   116,   125,   132,   138,   139,   142,   143,   146,
-     150,   153,   154,   155,   156,   157,   158,   159,   160,   161,
-     162,   163,   164,   165,   166,   167,   168,   169,   170,   171,
-     172,   173,   174,   175,   176,   177,   178,   179,   180,   181
+     149,   152,   153,   154,   155,   156,   157,   158,   159,   160,
+     161,   162,   163,   164,   165,   166,   167,   168,   169,   170,
+     171,   172,   173,   174,   175,   176,   177,   178,   179,   180
 };
 #endif
 
@@ -1708,194 +1708,193 @@ yyreduce:
   case 49: /* Expr_comma: Expr_comma COMMA Expr  */
 #line 146 "uccompiler.y"
                                   {(yyval.node) = newnode(Comma, NULL); 
-                                   if ((yyvsp[-2].node)->category == 25) addBrother((yyval.node), (yyvsp[-2].node));
-                                   else addchild((yyval.node), (yyvsp[-2].node)); 
+                                   addchild((yyval.node), (yyvsp[-2].node)); 
                                    addchild((yyval.node), (yyvsp[0].node));}
-#line 1715 "y.tab.c"
+#line 1714 "y.tab.c"
     break;
 
   case 50: /* Expr_comma: Expr  */
-#line 150 "uccompiler.y"
+#line 149 "uccompiler.y"
                  {(yyval.node) = (yyvsp[0].node);}
-#line 1721 "y.tab.c"
+#line 1720 "y.tab.c"
     break;
 
   case 51: /* Expr: IDENTIFIER LPAR error RPAR  */
-#line 153 "uccompiler.y"
+#line 152 "uccompiler.y"
                                     {(yyval.node) = newnode(Error, NULL);}
-#line 1727 "y.tab.c"
+#line 1726 "y.tab.c"
     break;
 
   case 52: /* Expr: LPAR error RPAR  */
-#line 154 "uccompiler.y"
+#line 153 "uccompiler.y"
                          {(yyval.node) = newnode(Error, NULL);}
-#line 1733 "y.tab.c"
+#line 1732 "y.tab.c"
     break;
 
   case 53: /* Expr: Expr ASSIGN Expr  */
-#line 155 "uccompiler.y"
+#line 154 "uccompiler.y"
                           {(yyval.node) = newnode(Store, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1739 "y.tab.c"
+#line 1738 "y.tab.c"
     break;
 
   case 54: /* Expr: Expr PLUS Expr  */
-#line 156 "uccompiler.y"
+#line 155 "uccompiler.y"
                         {(yyval.node) = newnode(Add, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1745 "y.tab.c"
+#line 1744 "y.tab.c"
     break;
 
   case 55: /* Expr: Expr MINUS Expr  */
-#line 157 "uccompiler.y"
+#line 156 "uccompiler.y"
                          {(yyval.node) = newnode(Sub, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1751 "y.tab.c"
+#line 1750 "y.tab.c"
     break;
 
   case 56: /* Expr: Expr MUL Expr  */
-#line 158 "uccompiler.y"
+#line 157 "uccompiler.y"
                        {(yyval.node) = newnode(Mul, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1757 "y.tab.c"
+#line 1756 "y.tab.c"
     break;
 
   case 57: /* Expr: Expr DIV Expr  */
-#line 159 "uccompiler.y"
+#line 158 "uccompiler.y"
                        {(yyval.node) = newnode(Div, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1763 "y.tab.c"
+#line 1762 "y.tab.c"
     break;
 
   case 58: /* Expr: Expr MOD Expr  */
-#line 160 "uccompiler.y"
+#line 159 "uccompiler.y"
                        {(yyval.node) = newnode(Mod, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1769 "y.tab.c"
+#line 1768 "y.tab.c"
     break;
 
   case 59: /* Expr: Expr OR Expr  */
-#line 161 "uccompiler.y"
+#line 160 "uccompiler.y"
                       {(yyval.node) = newnode(Or, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1775 "y.tab.c"
+#line 1774 "y.tab.c"
     break;
 
   case 60: /* Expr: Expr AND Expr  */
-#line 162 "uccompiler.y"
+#line 161 "uccompiler.y"
                        {(yyval.node) = newnode(And, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1781 "y.tab.c"
+#line 1780 "y.tab.c"
     break;
 
   case 61: /* Expr: Expr BITWISEAND Expr  */
-#line 163 "uccompiler.y"
+#line 162 "uccompiler.y"
                               {(yyval.node) = newnode(BitWiseAnd, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1787 "y.tab.c"
+#line 1786 "y.tab.c"
     break;
 
   case 62: /* Expr: Expr BITWISEOR Expr  */
-#line 164 "uccompiler.y"
+#line 163 "uccompiler.y"
                              {(yyval.node) = newnode(BitWiseOr, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1793 "y.tab.c"
+#line 1792 "y.tab.c"
     break;
 
   case 63: /* Expr: Expr BITWISEXOR Expr  */
-#line 165 "uccompiler.y"
+#line 164 "uccompiler.y"
                               {(yyval.node) = newnode(BitWiseXor, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1799 "y.tab.c"
+#line 1798 "y.tab.c"
     break;
 
   case 64: /* Expr: Expr EQ Expr  */
-#line 166 "uccompiler.y"
+#line 165 "uccompiler.y"
                       {(yyval.node) = newnode(Eq, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1805 "y.tab.c"
+#line 1804 "y.tab.c"
     break;
 
   case 65: /* Expr: Expr NE Expr  */
-#line 167 "uccompiler.y"
+#line 166 "uccompiler.y"
                       {(yyval.node) = newnode(Ne, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1811 "y.tab.c"
+#line 1810 "y.tab.c"
     break;
 
   case 66: /* Expr: Expr LE Expr  */
-#line 168 "uccompiler.y"
+#line 167 "uccompiler.y"
                       {(yyval.node) = newnode(Le, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1817 "y.tab.c"
+#line 1816 "y.tab.c"
     break;
 
   case 67: /* Expr: Expr GE Expr  */
-#line 169 "uccompiler.y"
+#line 168 "uccompiler.y"
                       {(yyval.node) = newnode(Ge, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1823 "y.tab.c"
+#line 1822 "y.tab.c"
     break;
 
   case 68: /* Expr: Expr LT Expr  */
-#line 170 "uccompiler.y"
+#line 169 "uccompiler.y"
                       {(yyval.node) = newnode(Lt, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1829 "y.tab.c"
+#line 1828 "y.tab.c"
     break;
 
   case 69: /* Expr: Expr GT Expr  */
-#line 171 "uccompiler.y"
+#line 170 "uccompiler.y"
                       {(yyval.node) = newnode(Gt, NULL); addchild((yyval.node), (yyvsp[-2].node)); addchild((yyval.node), (yyvsp[0].node));}
-#line 1835 "y.tab.c"
+#line 1834 "y.tab.c"
     break;
 
   case 70: /* Expr: PLUS Expr  */
-#line 172 "uccompiler.y"
+#line 171 "uccompiler.y"
                              {(yyval.node) = newnode(Plus, NULL); addchild((yyval.node), (yyvsp[0].node));}
-#line 1841 "y.tab.c"
+#line 1840 "y.tab.c"
     break;
 
   case 71: /* Expr: MINUS Expr  */
-#line 173 "uccompiler.y"
+#line 172 "uccompiler.y"
                               {(yyval.node) = newnode(Minus, NULL); addchild((yyval.node), (yyvsp[0].node));}
-#line 1847 "y.tab.c"
+#line 1846 "y.tab.c"
     break;
 
   case 72: /* Expr: NOT Expr  */
-#line 174 "uccompiler.y"
+#line 173 "uccompiler.y"
                   {(yyval.node) = newnode(Not, NULL); addchild((yyval.node), (yyvsp[0].node));}
-#line 1853 "y.tab.c"
+#line 1852 "y.tab.c"
     break;
 
   case 73: /* Expr: IDENTIFIER LPAR RPAR  */
-#line 175 "uccompiler.y"
+#line 174 "uccompiler.y"
                               {(yyval.node) = newnode(Call, NULL); addchild((yyval.node), newnode(Identifier, (yyvsp[-2].lexeme)));}
-#line 1859 "y.tab.c"
+#line 1858 "y.tab.c"
     break;
 
   case 74: /* Expr: IDENTIFIER LPAR Expr_call RPAR  */
-#line 176 "uccompiler.y"
+#line 175 "uccompiler.y"
                                         {(yyval.node) = newnode(Call, NULL); addchild((yyval.node), newnode(Identifier, (yyvsp[-3].lexeme))); addchild((yyval.node), (yyvsp[-1].node));}
-#line 1865 "y.tab.c"
+#line 1864 "y.tab.c"
     break;
 
   case 75: /* Expr: IDENTIFIER  */
-#line 177 "uccompiler.y"
+#line 176 "uccompiler.y"
                     {(yyval.node) = newnode(Identifier, (yyvsp[0].lexeme));}
-#line 1871 "y.tab.c"
+#line 1870 "y.tab.c"
     break;
 
   case 76: /* Expr: NATURAL  */
-#line 178 "uccompiler.y"
+#line 177 "uccompiler.y"
                  {(yyval.node) = newnode(Natural, (yyvsp[0].lexeme));}
-#line 1877 "y.tab.c"
+#line 1876 "y.tab.c"
     break;
 
   case 77: /* Expr: CHRLIT  */
-#line 179 "uccompiler.y"
+#line 178 "uccompiler.y"
                 {(yyval.node) = newnode(Chrlit, (yyvsp[0].lexeme));}
-#line 1883 "y.tab.c"
+#line 1882 "y.tab.c"
     break;
 
   case 78: /* Expr: DECIMAL  */
-#line 180 "uccompiler.y"
+#line 179 "uccompiler.y"
                  {(yyval.node) = newnode(Decimal, (yyvsp[0].lexeme));}
-#line 1889 "y.tab.c"
+#line 1888 "y.tab.c"
     break;
 
   case 79: /* Expr: LPAR Expr_comma RPAR  */
-#line 181 "uccompiler.y"
+#line 180 "uccompiler.y"
                               {(yyval.node) = (yyvsp[-1].node);}
-#line 1895 "y.tab.c"
+#line 1894 "y.tab.c"
     break;
 
 
-#line 1899 "y.tab.c"
+#line 1898 "y.tab.c"
 
       default: break;
     }

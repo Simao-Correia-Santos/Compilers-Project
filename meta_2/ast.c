@@ -53,6 +53,22 @@ void insert_typespec(struct node* parent, struct node* son){
     parent->children->next = new;
 }
 
+//Dealocate memory
+void deallocate_memory(struct node* node){
+    if(node != NULL) {
+        struct node_list *child = node->children;
+        while(child != NULL) {
+            deallocate_memory(child->node);
+            struct node_list *tmp = child;
+            child = child->next;
+            free(tmp);
+        }
+        if(node->token != NULL)
+            free(node->token);
+        free(node);
+    }
+}
+
 // show AST tree
 void show_ast_tree(struct node *node, int point){
 
@@ -75,6 +91,7 @@ void show_ast_tree(struct node *node, int point){
     }
 }
 
+//Get category name
 void get_category_name(int pos, char *category_buffer){
     switch (pos){
         case 0:

@@ -144,8 +144,7 @@ Expr_call: Expr_call COMMA Expr {$$ = $1; addBrother($$, $3);}
           ;
 
 Expr_comma: Expr_comma COMMA Expr {$$ = newnode(Comma, NULL); 
-                                   if ($1->category == 25) addBrother($$, $1);
-                                   else addchild($$, $1); 
+                                   addchild($$, $1); 
                                    addchild($$, $3);}
            |Expr {$$ = $1;}
            ;
