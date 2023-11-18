@@ -29,7 +29,6 @@ void addchild(struct node *parent, struct node *child) {
 
     if(child->brother != NULL){
         addchild(parent, child->brother);
-        free(child->brother);
     }
 }
 
