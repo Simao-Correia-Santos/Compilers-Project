@@ -2290,6 +2290,6 @@ int main(int argc, char const *argv[]) {
         pass_tokens = 1;
         yyparse();
     }
-    //deallocate_memory(program);    
+    deallocate_memory(program);    
     return 0;
 }

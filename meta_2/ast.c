@@ -6,7 +6,6 @@
 // create a node of a given category with a given lexical symbol
 struct node *newnode(enum category category, char *token) {
     struct node *new = malloc(sizeof(struct node));
-    new->children_count = 0;
     new->category = category;
     new->brother = NULL;
     new->token = token;
@@ -21,13 +20,13 @@ void addchild(struct node *parent, struct node *child) {
     if (parent == NULL || child == NULL) return;
 
     struct node_list *new = malloc(sizeof(struct node_list));
-    parent->children_count++;
     new->node = child;
     new->next = NULL;
     struct node_list *children = parent->children;
     while(children->next != NULL)
         children = children->next;
     children->next = new;
+
     if(child->brother != NULL){
         addchild(parent, child->brother);
     }
@@ -47,7 +46,6 @@ void addBrother(struct node *irmao_velho, struct node *irmao_novo){
 //Adiciona filho no inicio da lista
 void insert_typespec(struct node* parent, struct node* son){
     struct node_list *new = malloc(sizeof(struct node_list));
-    parent->children_count++;
     new->node = son;
     new->next = parent->children->next;
     parent->children->next = new;
@@ -55,15 +53,17 @@ void insert_typespec(struct node* parent, struct node* son){
 
 //Dealocate memory
 void deallocate_memory(struct node* node){
-   struct node_list *current_child = node->children->next;
-    while (current_child != NULL) {
-        struct node_list *next_child = current_child->next;
-        deallocate_memory(current_child->node);
-        free(current_child);
-        current_child = next_child;
+    if (node != NULL){
+    struct node_list *current_child = node->children;
+        while (current_child->node != NULL) {
+            struct node_list *next_child = current_child;
+            deallocate_memory(current_child->node);
+            free(current_child);
+            current_child = next_child;
+        }
+        if (node->token != NULL) free(node->token);
+        free(node);
     }
-    if (node->token != NULL) free(node->token);
-    free(node);
 }
 
 // show AST tree
