@@ -190,7 +190,16 @@ void show_symbol_table(){
     printf("===== GLOBAL SYMBOL TABLE =====\n");
     while ((aux = aux->next) != NULL){
         if (aux->function != NULL){
-            printf("%s\t%s\n", aux->function->name, aux->function->type);
+            struct params_list *aux_list = aux->function->parameters;
+            printf("%s\t%s(", aux->function->name, aux->function->type);
+            while (aux_list != NULL){
+                printf("%s", aux_list->type);
+                if (aux_list->next != NULL){
+                    printf(",");
+                }
+                aux_list = aux_list->next;
+            }
+            printf(")\n");
         }
         else 
             printf("%s\t%s\n", aux->variable->name, aux->variable->type);
