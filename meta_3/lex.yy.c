@@ -2290,8 +2290,9 @@ int main(int argc, char const *argv[]) {
     if (argc > 1 && strcmp(argv[1], "-s") == 0){
         pass_tokens = 1;
         yyparse();
-        if (syntax_errors == 0 && check_program(program) == 0){
-            show_symbol_table();
+        if (syntax_errors == 0){
+            check_program(program);
+            //show_symbol_table();
             show_ast_tree(program, 0);
         }
     }

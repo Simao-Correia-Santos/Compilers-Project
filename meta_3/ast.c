@@ -55,6 +55,15 @@ void insert_typespec(struct node* parent, struct node* son){
     parent->children->next = new;
 }
 
+// Get a pointer to a specific child, numbered 0, 1, 2, ...
+struct node *getchild(struct node *parent, int position) {
+    struct node_list *children = parent->children;
+    while((children = children->next) != NULL)
+        if(position-- == 0)
+            return children->node;
+    return NULL;
+}
+
 // Show AST tree
 void show_ast_tree(struct node *node, int point){
     for (int i = 0; i < point; i++){
