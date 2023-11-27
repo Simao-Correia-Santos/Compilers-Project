@@ -85,10 +85,11 @@ void check_parameter_declarator(struct node* node, struct function *function){
             function->parameters = new;
         }
         else {
-            while (function->parameters->next != NULL){
-                function->parameters = function->parameters->next;
+            struct params_list *aux = function->parameters;
+            while (aux->next != NULL){
+                aux = aux->next;
             }
-            function->parameters->next = new;
+            aux->next = new;
         }
         pos++;
     }
@@ -188,6 +189,7 @@ void show_symbol_table(){
     struct symbols_list *aux = global_symbol_table;
 
     printf("===== GLOBAL SYMBOL TABLE =====\n");
+    printf("putchar	int(int)\ngetchar	int(void)\n");
     while ((aux = aux->next) != NULL){
         if (aux->function != NULL){
             struct params_list *aux_list = aux->function->parameters;
