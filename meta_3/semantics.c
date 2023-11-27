@@ -86,23 +86,25 @@ void check_parameter_declarator(struct node *params_list, struct function *funct
         struct node *typespec_node = getchild(param_decl, 0);
         struct node *identifier_node = getchild(param_decl, 1); //PODE SER NULL
         
-        struct params_list *new = (struct params_list*) malloc(sizeof(struct params_list));
-        if (identifier_node != NULL)
-            new->name = identifier_node->token;
-        else 
-            new->name = NULL;
-        new->type= category_names[typespec_node->category];
-        new->next = NULL;
+        if (typespec_node->category != Void){
+            struct params_list *new = (struct params_list*) malloc(sizeof(struct params_list));
+            if (identifier_node != NULL)
+                new->name = identifier_node->token;
+            else 
+                new->name = NULL;
+            new->type= category_names[typespec_node->category];
+            new->next = NULL;
 
-        if (function->parameters == NULL){
-            function->parameters = new;
-        }
-        else {
-            struct params_list *aux = function->parameters;
-            while (aux->next != NULL){
-                aux = aux->next;
+            if (function->parameters == NULL){
+                function->parameters = new;
             }
-            aux->next = new;
+            else {
+                struct params_list *aux = function->parameters;
+                while (aux->next != NULL){
+                    aux = aux->next;
+                }
+                aux->next = new;
+            }
         }
         pos++;
     }
@@ -115,7 +117,7 @@ void check_declaration(struct node *declaration, int is_global, struct function 
     if (is_global && search_variable_symbol(global_symbol_table, identifier_node->token) == NULL){
         insert_variable_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
     }
-    else if (!is_global && typespec_node->category != Void && search_local_variable(function, identifier_node->token) == NULL){
+    else if (!is_global && search_local_variable(function, identifier_node->token) == NULL){
         insert_local_variable(function, identifier_node->token, category_names[typespec_node->category]);
     }
 }
