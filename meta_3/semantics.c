@@ -27,7 +27,7 @@ void check_program(struct node *program){
             check_func_declaration(aux);
         }
         else if (aux->category == Declaration){
-            check_declaration(aux, 1);
+            check_declaration(aux, 1, NULL);
         }
     }
 }
@@ -44,11 +44,24 @@ void check_func_definition(struct node *func_definition){
 
         check_parameter_declarator(getchild(func_definition, 2), symbol->function);
 
-        check_fuction_body(getchild(func_definition, 3), symbol->function->variables);
+        check_fuction_body(getchild(func_definition, 3), symbol->function);
     }
 }
 
-void check_fuction_body(struct node* no, struct params_list *variaveis_locais_list){}
+void check_fuction_body(struct node *func_body, struct function *function){
+    int pos = 0;
+    struct node *son;
+
+     while ((son = getchild(func_body, pos)) != NULL){
+        if (son->category == Declaration){
+            check_declaration(son, 0, function);
+        }
+        else {
+            check_statement();
+        }
+        pos++;
+     }
+}
 
 void check_func_declaration(struct node *func_declaration){
     struct symbols_list *symbol;
@@ -65,11 +78,11 @@ void check_func_declaration(struct node *func_declaration){
     }
 }
 
-void check_parameter_declarator(struct node* node, struct function *function){
+void check_parameter_declarator(struct node *params_list, struct function *function){
     struct node *param_decl;
     int pos = 0;
 
-    while ((param_decl = getchild(node, pos)) != NULL){
+    while ((param_decl = getchild(params_list, pos)) != NULL){
         struct node *typespec_node = getchild(param_decl, 0);
         struct node *identifier_node = getchild(param_decl, 1); //PODE SER NULL
         
@@ -95,14 +108,19 @@ void check_parameter_declarator(struct node* node, struct function *function){
     }
 }
 
-void check_declaration(struct node *declaration, int is_global){
+void check_declaration(struct node *declaration, int is_global, struct function *function){
     struct node *typespec_node = getchild(declaration, 0);
     struct node *identifier_node = getchild(declaration, 1);
 
-    if (search_variable_symbol(global_symbol_table, identifier_node->token) == NULL){
+    if (is_global && search_variable_symbol(global_symbol_table, identifier_node->token) == NULL){
         insert_variable_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
     }
+    else if (!is_global && typespec_node->category != Void && search_local_variable(function, identifier_node->token) == NULL){
+        insert_local_variable(function, identifier_node->token, category_names[typespec_node->category]);
+    }
 }
+
+void check_statement(){}
 
 // Insert a new function symbol in the list, unless it is already there
 struct symbols_list *insert_function_symbol(struct symbols_list *table, char *identifier, char *type) {
@@ -145,7 +163,7 @@ struct symbols_list *search_function_symbol(struct symbols_list *table, char *id
     return NULL;
 }
 
-//Look up a variavle symbol by its identifier
+//Look up a variable symbol by its identifier
 struct symbols_list *search_variable_symbol(struct symbols_list *table, char *identifier){
     struct symbols_list *symbol = table->next;
     while (symbol != NULL){
@@ -184,6 +202,42 @@ struct symbols_list *insert_variable_symbol(struct symbols_list *table, char *id
     return new;
 }
 
+// Look up a variable symbol by its identifier inside a function
+struct function *search_local_variable(struct function *function, char *identifier){
+    struct params_list *aux = function->variables;
+    while (aux != NULL){
+        if(strcmp(aux->name, identifier) == 0)
+            return function;
+        aux = aux->next;
+    }
+    return NULL;
+}
+
+// Insert e new local variable in the list, unless it is already there
+struct params_list *insert_local_variable(struct function *function, char *type, char *identifier){
+    struct params_list *new = (struct params_list *) malloc(sizeof(struct params_list));
+    new->name= strdup(identifier);
+    new->type = strdup(type);
+    new->next = NULL;
+
+    struct function *aux_function = function;
+
+    if (aux_function->variables == NULL){
+            function->variables = new;
+    }
+    else {
+        if(strcmp(aux_function->variables->name, identifier) == 0) {
+            free(new);
+            return NULL;
+        } 
+        while (aux_function->variables->next != NULL){
+            aux_function->variables = aux_function->variables->next;
+        }
+        aux_function->variables->next = new;
+    }
+    return new;
+}
+
 // Show Global Tabel
 void show_symbol_table(){
     struct symbols_list *aux = global_symbol_table;
@@ -205,5 +259,26 @@ void show_symbol_table(){
         }
         else 
             printf("%s\t%s\n", aux->variable->name, aux->variable->type);
+    }
+    printf("\n");
+    show_symbol_table_functions();
+}
+
+void show_symbol_table_functions(){
+    struct symbols_list *aux = global_symbol_table;
+    while((aux = aux->next) != NULL){
+        if(aux->function != NULL && aux->function->is_defined){
+            printf("===== Function %s Symbol Table =====\n", aux->function->name);
+            printf("Return  %s\n",aux->function->type);
+            while(aux->function->parameters != NULL){
+                printf("%s  %s param\n", aux->function->parameters->name, aux->function->parameters->type);
+                aux->function->parameters = aux->function->parameters->next;
+            }
+            while(aux->function->variables != NULL){
+                printf("%s  %s\n", aux->function->variables->type, aux->function->variables->name);
+                aux->function->variables = aux->function->variables->next;
+            }
+            printf("\n");
+        }
     }
 }

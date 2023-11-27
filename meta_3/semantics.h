@@ -25,14 +25,18 @@ struct symbols_list {
 void check_program(struct node *program);
 void check_func_definition(struct node *node);
 void check_func_declaration(struct node *node);
-void check_declaration(struct node *node, int is_global);
+void check_declaration(struct node *node, int is_global, struct function *function);
 void check_parameter_declarator(struct node *no, struct function *function);
-void check_fuction_body(struct node *no, struct params_list *variaveis_locais_list);
+void check_fuction_body(struct node *no, struct function *function);
+void check_statement();
 
 struct symbols_list *insert_function_symbol(struct symbols_list *symbol_table, char *identifier, char *type);
 struct symbols_list *search_function_symbol(struct symbols_list *table, char *identifier);
 struct symbols_list *search_variable_symbol(struct symbols_list *table, char *identifier);
 struct symbols_list *insert_variable_symbol(struct symbols_list *table, char *identifier, char *type);
+struct function *search_local_variable(struct function *function, char *identifier);
+struct params_list *insert_local_variable(struct function *function, char *type, char *identifier);
 void show_symbol_table();
+void show_symbol_table_functions();
 
 #endif
