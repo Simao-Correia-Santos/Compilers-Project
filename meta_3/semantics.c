@@ -42,9 +42,9 @@ void check_func_definition(struct node *func_definition){
         symbol = insert_function_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
         symbol->function->is_defined = 1;
 
-        check_parameter_declarator(getchild(func_definition, 1), symbol->function->parameters);
+        check_parameter_declarator(getchild(func_definition, 2), symbol->function);
 
-        check_fuction_body(getchild(func_definition, 2), symbol->function->variables);
+        check_fuction_body(getchild(func_definition, 3), symbol->function->variables);
     }
 }
 
@@ -60,19 +60,19 @@ void check_func_declaration(struct node *func_declaration){
         symbol = insert_function_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
 
         if (symbol->function->is_defined == 0){
-           check_parameter_declarator(getchild(func_declaration, 2), symbol->function->parameters);
+           check_parameter_declarator(getchild(func_declaration, 2), symbol->function);
         }
     }
 }
 
-void check_parameter_declarator(struct node* node, struct params_list *parameters_list){
+void check_parameter_declarator(struct node* node, struct function *function){
     struct node *param_decl;
     int pos = 0;
 
     while ((param_decl = getchild(node, pos)) != NULL){
         struct node *typespec_node = getchild(param_decl, 0);
         struct node *identifier_node = getchild(param_decl, 1); //PODE SER NULL
-
+        
         struct params_list *new = (struct params_list*) malloc(sizeof(struct params_list));
         if (identifier_node != NULL)
             new->name = identifier_node->token;
@@ -81,14 +81,14 @@ void check_parameter_declarator(struct node* node, struct params_list *parameter
         new->type= category_names[typespec_node->category];
         new->next = NULL;
 
-        if (parameters_list == NULL){
-        parameters_list = new;
+        if (function->parameters == NULL){
+            function->parameters = new;
         }
         else {
-            while (parameters_list->next != NULL){
-                parameters_list = parameters_list->next;
+            while (function->parameters->next != NULL){
+                function->parameters = function->parameters->next;
             }
-            parameters_list->next = new;
+            function->parameters->next = new;
         }
         pos++;
     }
@@ -130,7 +130,7 @@ struct symbols_list *insert_function_symbol(struct symbols_list *table, char *id
         }
         symbol = symbol->next;
     }
-    return new;
+    return symbol->next;
 }
 
 // Look up a function symbol by its identifier

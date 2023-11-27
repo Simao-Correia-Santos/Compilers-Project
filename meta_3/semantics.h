@@ -26,7 +26,7 @@ void check_program(struct node *program);
 void check_func_definition(struct node *node);
 void check_func_declaration(struct node *node);
 void check_declaration(struct node *node, int is_global);
-void check_parameter_declarator(struct node *no, struct params_list *parameters_list);
+void check_parameter_declarator(struct node *no, struct function *function);
 void check_fuction_body(struct node *no, struct params_list *variaveis_locais_list);
 
 struct symbols_list *insert_function_symbol(struct symbols_list *symbol_table, char *identifier, char *type);
