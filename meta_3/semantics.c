@@ -32,16 +32,20 @@ void check_program(struct node *program){
     }
 }
 
-void check_func_definition(struct node *func_definition){
-    struct symbols_list *symbol;
-
+void check_func_definition(struct node *func_definition){   
     struct node *typespec_node = getchild(func_definition, 0);
     struct node *identifier_node = getchild(func_definition, 1);
 
-    if (search_function_symbol(global_symbol_table, identifier_node->token) == NULL){
-        symbol = insert_function_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
+    struct symbols_list *symbol = search_function_symbol(global_symbol_table, identifier_node->token);
+
+    if (symbol == NULL || symbol->function->is_defined == 0){
+        if (symbol == NULL)
+            symbol = insert_function_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
         symbol->function->is_defined = 1;
 
+        if (symbol->function->parameters != NULL){
+            symbol->function->parameters = NULL;
+        }
         check_parameter_declarator(getchild(func_definition, 2), symbol->function);
 
         check_fuction_body(getchild(func_definition, 3), symbol->function);
@@ -255,7 +259,7 @@ struct params_list *insert_local_variable(struct function *function, char *type,
 void show_symbol_table(){
     struct symbols_list *aux = global_symbol_table;
 
-    printf("===== GLOBAL SYMBOL TABLE =====\n");
+    printf("===== Global Symbol Table =====\n");
     printf("putchar	int(int)\ngetchar	int(void)\n");
     while ((aux = aux->next) != NULL){
         if (aux->function != NULL){
@@ -277,6 +281,7 @@ void show_symbol_table(){
     show_symbol_table_functions();
 }
 
+// Show Function Table
 void show_symbol_table_functions(){
     struct symbols_list *aux = global_symbol_table;
     while((aux = aux->next) != NULL){
