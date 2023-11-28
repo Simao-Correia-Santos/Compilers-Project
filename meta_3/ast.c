@@ -11,7 +11,7 @@ struct node *newnode(enum category category, char *token) {
     struct node *new = malloc(sizeof(struct node));
     new->category = category;
     new->brother = NULL;
-    new->type = no_type;
+    new->type = NULL;
     new->token = token;
     new->children = malloc(sizeof(struct node_list));
     new->children->node = NULL;

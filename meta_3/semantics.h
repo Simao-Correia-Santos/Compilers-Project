@@ -36,6 +36,8 @@ struct symbols_list *search_variable_symbol(struct symbols_list *table, char *id
 struct symbols_list *insert_variable_symbol(struct symbols_list *table, char *identifier, char *type);
 struct function *search_local_variable(struct function *function, char *identifier);
 struct params_list *insert_local_variable(struct function *function, char *type, char *identifier);
+void check_expr_comma(struct node *expr_comma_node);
+void check_expression(struct node *expression);
 void show_symbol_table();
 void show_symbol_table_functions();
 

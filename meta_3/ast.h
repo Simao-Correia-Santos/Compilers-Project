@@ -4,14 +4,10 @@
 enum category {Program, Declaration, FuncDeclaration, FuncDefinition, ParamList, FuncBody, ParamDeclaration, StatList, Or, And, Eq, Ne, Lt, Gt, Le, Ge, Add, Sub, Mul, Div, Mod, Not, Minus, Plus, Store, Comma, Call, BitWiseAnd, BitWiseXor, BitWiseOr, Null, Char, Chrlit, Identifier, Int, Short, Natural, Double, Decimal, Void, If, While, Return, Error};
 #define names {"Program", "Declaration", "FuncDeclaration", "FuncDefinition", "ParamList", "FuncBody", "ParamDeclaration", "StatList", "Or", "And", "Eq", "Ne", "Lt", "Gt", "Le", "Ge", "Add", "Sub", "Mul", "Div", "Mod", "Not", "Minus", "Plus", "Store", "Comma", "Call", "BitWiseAnd", "BitWiseXor", "BitWiseOr", "Null", "Char", "Chrlit", "Identifier", "Int", "Short", "Natural", "Double", "Decimal", "Void", "If", "While", "Return", "Error"};
 
-enum type {integer_type, double_type, char_type, void_type, short_type, undef_type, no_type};
-#define type_name(type) ( type == integer_type ? "integer" : (type == double_type ? "double" : (type == char_type ? "char" : (type == void_type ? "void" : (type == short_type ? "short" : (type == undef_type ? "undef";))))))
-
-
 struct node {
     int children_count;
     enum category category;
-    enum type type;
+    char *type;
     char *token;
     struct node *brother;
     struct node_list *children;

@@ -127,11 +127,71 @@ void check_declaration(struct node *declaration, int is_global, struct function 
         insert_local_variable(function, category_names[typespec_node->category], identifier_node->token);
     }
 
-    if (expr_comma_node != NULL){}
-        
+    if (expr_comma_node != NULL){
+        check_expr_comma(expr_comma_node);
+    }    
 }
 
 void check_statement(){}
+
+void check_expr_comma(struct node *expr_comma_node){
+    if (expr_comma_node->category != Comma){
+        check_expression(expr_comma_node);
+    }
+    else {
+        int pos = 0;
+        struct node *aux;
+        while ((aux = getchild(expr_comma_node, pos)) != NULL){
+            check_expr_comma(aux);
+            pos += 1;
+        }
+    }
+}
+
+void check_expression(struct node *expression){
+    switch(expression->category){
+        case Decimal:
+            expression->type = "double";
+            break;
+        
+        case Natural:
+            expression->type = "int";
+            break;
+        
+        case Identifier:
+            break;
+
+        case Chrlit:
+            break;
+
+        case Not:
+        case Or:
+        case And:
+        case Eq:
+        case Ne:
+        case Lt:
+        case Gt:
+        case Le:
+        case Ge:
+        case Mod:
+            break;
+        
+        case Add:
+        case Sub:
+        case Mul:
+        case Div:
+        case BitWiseAnd:
+        case BitWiseOr:
+        case BitWiseXor:
+            break;
+
+        case Store:
+            break;
+        
+        case Call:
+            break;
+    }
+}
 
 // Insert a new function symbol in the list, unless it is already there
 struct symbols_list *insert_function_symbol(struct symbols_list *table, char *identifier, char *type) {
