@@ -19,6 +19,8 @@ void check_program(struct node *program){
     global_symbol_table->variable = NULL;
     global_symbol_table->next = NULL;
 
+    insert_putchar_getchar();
+
     for (int i = 0; (aux = getchild(program, i)) != NULL; i++){
         if (aux->category == FuncDefinition){
             check_func_definition(aux);
@@ -61,7 +63,7 @@ void check_fuction_body(struct node *func_body, struct function *function){
             check_declaration(son, 0, function);
         }
         else {
-            check_statement();
+            check_statement(son, function);
         }
         pos++;
      }
@@ -132,7 +134,66 @@ void check_declaration(struct node *declaration, int is_global, struct function 
     }    
 }
 
-void check_statement(){}
+void check_statement(struct node *statement, struct function *function){
+    int statListPos = 0;
+    struct node *sonStatList;
+
+    switch(statement->category){
+        case StatList:
+            while((sonStatList = getchild(statement, statListPos)) != NULL){
+                check_expr_comma(sonStatList);
+                statListPos++;
+            }
+            break;
+
+        case If:
+            check_expr_comma(getchild(statement, 0));
+
+            struct node *body_if = getchild(statement, 1);
+            if (body_if != NULL){
+                if (body_if->category == StatList){
+                    check_statement(body_if, function);
+                }
+                else {
+                    check_expr_comma(body_if);
+                }
+            }
+
+            struct node *body_else = getchild(statement, 2);
+            if (body_else != NULL){
+                if (body_else->category == StatList){
+                    check_statement(body_else, function);
+                }
+                else{
+                    check_expr_comma(body_else);
+                }
+            }
+            break;
+
+        case While:
+            check_expr_comma(getchild(statement, 0));
+
+            struct node *expr_comma_node4 = getchild(statement, 1);
+            if(expr_comma_node4 != NULL){
+                if (expr_comma_node4->category == StatList){
+                    check_statement(expr_comma_node4, function);
+                }
+                else{
+                    check_expr_comma(expr_comma_node4);
+                }
+            }
+            break;
+
+        case Return:
+            struct node *expr_comma_node = getchild(statement, 0);
+            if(expr_comma_node != NULL)
+                check_expr_comma(expr_comma_node);
+            break;
+
+        default:
+            break;
+    }
+}
 
 void check_expr_comma(struct node *expr_comma_node){
     if (expr_comma_node->category != Comma){
@@ -155,16 +216,15 @@ void check_expression(struct node *expression){
             break;
         
         case Natural:
+        case Chrlit:
             expression->type = "int";
             break;
         
         case Identifier:
+            
+            //Tipo igual ao tipo da variavel ou funcao com o nome do Identifier
             break;
 
-        case Chrlit:
-            break;
-
-        case Not:
         case Or:
         case And:
         case Eq:
@@ -174,8 +234,19 @@ void check_expression(struct node *expression){
         case Le:
         case Ge:
         case Mod:
+            check_expression(getchild(expression, 0));
+            check_expression(getchild(expression, 1));
+            expression->type = "int";
             break;
         
+        case Not:
+        case Plus:
+        case Minus:
+            struct node *son = getchild(expression, 0);
+            check_expression(son);
+            expression->type = son->type; 
+            break;
+
         case Add:
         case Sub:
         case Mul:
@@ -183,14 +254,74 @@ void check_expression(struct node *expression){
         case BitWiseAnd:
         case BitWiseOr:
         case BitWiseXor:
+            struct node *son_1 = getchild(expression, 0);
+            struct node *son_2 = getchild(expression, 1);
+            check_expression(son_1);
+            check_expression(son_2);
+            get_expression_type(expression->type, son_1->type, son_2->type);
             break;
 
         case Store:
+            struct node *son_3 = getchild(expression, 0);
+            check_expression(son_3);
+            check_expression(getchild(expression, 1));
+            expression->type = son_3->type;
             break;
         
         case Call:
+            int pos = 1;
+            struct node *aux;
+            expression->type = getchild(expression, 0)->type;
+            while ((aux = getchild(expression, pos)) != NULL){
+                check_expression(aux);
+                pos += 1;
+            }
+            break;
+        
+        default:
             break;
     }
+}
+
+void get_expression_type(char *expression_type, char *son_1_type, char *son_2_type){
+    int pos_1 = -1;
+    int pos_2 = -1;
+    char lista[5][7] = {"char", "short", "int", "double", "undef"};
+ 
+    for (int i = 0; i < 4; i++){
+        if (strcmp(lista[i], son_1_type) == 0)
+            pos_1 = i;
+    }
+    if (pos_1 == -1)
+        pos_1 = 4;
+
+    for (int i = 0; i < 4; i++){
+        if (strcmp(lista[i], son_2_type) == 0)
+            pos_2 = i;
+    }
+    if (pos_2 == -1)
+        pos_2 = 4;
+
+    if (pos_1 > pos_2)
+        expression_type = strdup(lista[pos_1]);
+    else
+        expression_type = strdup(lista[pos_2]);
+}
+
+
+// Insert putchar and getchar function´
+void insert_putchar_getchar(){
+    struct symbols_list *putchar = insert_function_symbol(global_symbol_table, "putchar", "Int");
+    putchar->function->parameters = (struct params_list *) malloc(sizeof(struct params_list));
+    putchar->function->parameters->type = "int";
+    putchar->function->parameters->name = NULL;
+    putchar->function->parameters->next = NULL;
+
+    struct symbols_list *getchar = insert_function_symbol(global_symbol_table, "getchar", "Int");
+    getchar->function->parameters = (struct params_list *) malloc(sizeof(struct params_list));
+    getchar->function->parameters->type = "void";
+    getchar->function->parameters->name = NULL;
+    getchar->function->parameters->next = NULL;
 }
 
 // Insert a new function symbol in the list, unless it is already there
@@ -320,7 +451,6 @@ void show_symbol_table(){
     struct symbols_list *aux = global_symbol_table;
 
     printf("===== Global Symbol Table =====\n");
-    printf("putchar	int(int)\ngetchar	int(void)\n");
     while ((aux = aux->next) != NULL){
         if (aux->function != NULL){
             struct params_list *aux_list = aux->function->parameters;

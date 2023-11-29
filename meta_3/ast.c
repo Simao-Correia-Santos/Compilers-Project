@@ -69,11 +69,21 @@ void show_ast_tree(struct node *node, int point){
     for (int i = 0; i < point; i++){
         printf("..");
     }
-    if (node->token == NULL){
+
+    if (node->token == NULL && node->type == NULL)
         printf("%s\n", category_name[node->category]);
-    }
-    else{
-        printf("%s(%s)\n", category_name[node->category], node->token);
+
+    else {
+        if (node->type != NULL && node->token != NULL)
+            printf("%s(%s) - %s\n", category_name[node->category], node->token, node->type);
+
+        else {
+            if (node->token != NULL && node->type == NULL)
+                printf("%s(%s)\n", category_name[node->category], node->token);
+            
+            else 
+                printf("%s - %s\n", category_name[node->category], node->type);
+        }
     }
     struct node_list *child = node->children;
     while(child->next != NULL){
