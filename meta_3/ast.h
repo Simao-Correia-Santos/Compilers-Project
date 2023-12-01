@@ -9,6 +9,7 @@ struct node {
     enum category category;
     char *type;
     char *token;
+    char *annotation;
     struct node *brother;
     struct node_list *children;
 };

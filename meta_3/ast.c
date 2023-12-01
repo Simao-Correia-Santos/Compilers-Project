@@ -12,6 +12,7 @@ struct node *newnode(enum category category, char *token) {
     new->category = category;
     new->brother = NULL;
     new->type = NULL;
+    new->annotation = NULL;
     new->token = token;
     new->children = malloc(sizeof(struct node_list));
     new->children->node = NULL;
@@ -72,19 +73,15 @@ void show_ast_tree(struct node *node, int point){
 
     if (node->token == NULL && node->type == NULL)
         printf("%s\n", category_name[node->category]);
-
-    else {
-        if (node->type != NULL && node->token != NULL)
+    else if (node->type != NULL && node->token != NULL && node->annotation == NULL)
             printf("%s(%s) - %s\n", category_name[node->category], node->token, node->type);
-
-        else {
-            if (node->token != NULL && node->type == NULL)
-                printf("%s(%s)\n", category_name[node->category], node->token);
-            
-            else 
-                printf("%s - %s\n", category_name[node->category], node->type);
-        }
-    }
+    else if (node->type != NULL && node->token != NULL && node->annotation != NULL)
+            printf("%s(%s) - %s\n", category_name[node->category], node->token, node->annotation);
+    else if (node->token != NULL && node->type == NULL)
+            printf("%s(%s)\n", category_name[node->category], node->token);    
+    else 
+        printf("%s - %s\n", category_name[node->category], node->type);
+        
     struct node_list *child = node->children;
     while(child->next != NULL){
         child = child->next;
