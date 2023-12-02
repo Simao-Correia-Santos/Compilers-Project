@@ -242,17 +242,23 @@ void check_expression(struct node *expression, struct function *func){
                 expression->annotation = strdup(buffer);
             }
             else {
-                struct params_list *aux_1 = search_local_variable(func, expression->token);
-                struct params_list *aux_2 = search_parameters_list(func, expression->token);
                 struct params_list *aux_3 = search_variable_symbol(global_symbol_table, expression->token);
-                if (aux_1 != NULL)
-                    expression->type = strdup(aux_1->type);
-                else if (aux_2 != NULL)
-                    expression->type = strdup(aux_2->type);
-                else if (aux_3 != NULL)
+                if (aux_3 != NULL)
                     expression->type = strdup(aux_3->type);
-                else
-                    expression->type = "undef";
+                else {
+                    if (func == NULL)
+                        expression->type = "undef";
+                    else {
+                        struct params_list *aux_1 = search_local_variable(func, expression->token);
+                        if (aux_1 != NULL)
+                            expression->type = strdup(aux_1->type);
+                        else {
+                            struct params_list *aux_2 = search_parameters_list(func, expression->token);
+                            if (aux_2 != NULL)
+                                expression->type = strdup(aux_2->type);
+                        }
+                    }
+                }
             }
             break;
 
