@@ -4,7 +4,6 @@
 #include "ast.h"
 #include "semantics.h"
 
-int semantic_errors = 0;
 struct symbols_list *global_symbol_table;
 
 // Category names #defined in ast.h
@@ -137,6 +136,10 @@ void check_declaration(struct node *declaration, int is_global, struct function 
 void check_statement(struct node *statement, struct function *function){
     int statListPos = 0;
     struct node *sonStatList;
+    struct node *body_if;
+    struct node *body_else;
+    struct node *body_while;
+    struct node *expr_comma_node;
 
     switch(statement->category){
         case StatList:
@@ -149,7 +152,7 @@ void check_statement(struct node *statement, struct function *function){
         case If:
             check_expr_comma(getchild(statement, 0), function);
 
-            struct node *body_if = getchild(statement, 1);
+            body_if = getchild(statement, 1);
             if (body_if != NULL){
                 if (body_if->category == StatList){
                     check_statement(body_if, function);
@@ -159,7 +162,7 @@ void check_statement(struct node *statement, struct function *function){
                 }
             }
 
-            struct node *body_else = getchild(statement, 2);
+            body_else = getchild(statement, 2);
             if (body_else != NULL){
                 if (body_else->category == StatList){
                     check_statement(body_else, function);
@@ -173,19 +176,19 @@ void check_statement(struct node *statement, struct function *function){
         case While:
             check_expr_comma(getchild(statement, 0), function);
 
-            struct node *expr_comma_node4 = getchild(statement, 1);
-            if(expr_comma_node4 != NULL){
-                if (expr_comma_node4->category == StatList){
-                    check_statement(expr_comma_node4, function);
+            body_while = getchild(statement, 1);
+            if(body_while != NULL){
+                if (body_while->category == StatList){
+                    check_statement(body_while, function);
                 }
                 else{
-                    check_expr_comma(expr_comma_node4, function);
+                    check_expr_comma(body_while, function);
                 }
             }
             break;
 
         case Return:
-            struct node *expr_comma_node = getchild(statement, 0);
+            expr_comma_node = getchild(statement, 0);
             if(expr_comma_node != NULL)
                 check_expr_comma(expr_comma_node, function);
             break;
@@ -209,7 +212,13 @@ void check_expr_comma(struct node *expr_comma_node, struct function *func){
     }
 }
 
-void check_expression(struct node *expression, struct function *func){
+void check_expression(struct node *expression, struct function *func){  
+    struct symbols_list *symbol;
+    struct params_list *aux_list;
+    struct node *son;
+    struct node *son_2;
+    char buffer[64] = "";
+
     switch(expression->category){
         case Decimal:
             expression->type = "double";
@@ -221,12 +230,9 @@ void check_expression(struct node *expression, struct function *func){
             break;
         
         case Identifier:
-            struct symbols_list *symbol = search_function_symbol(global_symbol_table, expression->token);
+            symbol = search_function_symbol(global_symbol_table, expression->token);
 
             if (symbol != NULL){
-                char buffer[64] = "";
-                struct params_list *aux_list;
-
                 aux_list = symbol->function->parameters;
 
                 strcat(buffer, symbol->function->type);
@@ -242,20 +248,22 @@ void check_expression(struct node *expression, struct function *func){
                 expression->annotation = strdup(buffer);
             }
             else {
-                struct params_list *aux_3 = search_variable_symbol(global_symbol_table, expression->token);
-                if (aux_3 != NULL)
-                    expression->type = strdup(aux_3->type);
+                aux_list = search_variable_symbol(global_symbol_table, expression->token);
+                if (aux_list != NULL)
+                    expression->type = strdup(aux_list->type);
                 else {
-                    if (func == NULL)
+                    if (func == NULL){
                         expression->type = "undef";
+                        printf("Unknown symbol %s\n", expression->token);
+                    }
                     else {
-                        struct params_list *aux_1 = search_local_variable(func, expression->token);
-                        if (aux_1 != NULL)
-                            expression->type = strdup(aux_1->type);
+                        aux_list = search_local_variable(func, expression->token);
+                        if (aux_list != NULL)
+                            expression->type = strdup(aux_list->type);
                         else {
-                            struct params_list *aux_2 = search_parameters_list(func, expression->token);
-                            if (aux_2 != NULL)
-                                expression->type = strdup(aux_2->type);
+                            aux_list = search_parameters_list(func, expression->token);
+                            if (aux_list != NULL)
+                                expression->type = strdup(aux_list->type);
                         }
                     }
                 }
@@ -279,9 +287,9 @@ void check_expression(struct node *expression, struct function *func){
         case Not:
         case Plus:
         case Minus:
-            struct node *son = getchild(expression, 0);
+            son = getchild(expression, 0);
             check_expression(son, func);
-            expression->type = son->type; 
+            expression->type = strdup(son->type); 
             break;
 
         case Add:
@@ -291,27 +299,27 @@ void check_expression(struct node *expression, struct function *func){
         case BitWiseAnd:
         case BitWiseOr:
         case BitWiseXor:
-            struct node *son_1 = getchild(expression, 0);
-            struct node *son_2 = getchild(expression, 1);
-            check_expression(son_1, func);
+            son = getchild(expression, 0);
+            son_2 = getchild(expression, 1);
+            check_expression(son, func);
             check_expression(son_2, func);
-            get_expression_type(expression, son_1->type, son_2->type);
+            get_expression_type(expression, son->type, son_2->type);
             break;
 
         case Store:
-            struct node *son_3 = getchild(expression, 0);
-            check_expression(son_3, func);
+            son = getchild(expression, 0);
+            check_expression(son, func);
             check_expression(getchild(expression, 1), func);
-            expression->type = son_3->type;
+            expression->type = strdup(son->type);
             break;
         
         case Call:
             int pos = 1;
-            struct node *aux = getchild(expression, 0);
-            check_expression(aux, func);
-            expression->type = strdup(aux->type);
-            while ((aux = getchild(expression, pos)) != NULL){
-                check_expression(aux, func);
+            son = getchild(expression, 0);
+            check_expression(son, func);
+            expression->type = strdup(son->type);
+            while ((son = getchild(expression, pos)) != NULL){
+                check_expression(son, func);
                 pos += 1;
             }
             break;
@@ -322,28 +330,16 @@ void check_expression(struct node *expression, struct function *func){
 }
 
 void get_expression_type(struct node *expression, char *son_1_type, char *son_2_type){
-    int pos_1 = -1;
-    int pos_2 = -1;
-    char lista[5][7] = {"char", "short", "int", "double", "undef"};
- 
-    for (int i = 0; i < 4; i++){
-        if (strcmp(lista[i], son_1_type) == 0)
-            pos_1 = i;
-    }
-    if (pos_1 == -1)
-        pos_1 = 4;
-
-    for (int i = 0; i < 4; i++){
-        if (strcmp(lista[i], son_2_type) == 0)
-            pos_2 = i;
-    }
-    if (pos_2 == -1)
-        pos_2 = 4;
-
-    if (pos_1 > pos_2)
-        expression->type = strdup(lista[pos_1]);
-    else
-        expression->type = strdup(lista[pos_2]);
+    if (strcmp(son_1_type, "undef") == 0 || strcmp(son_2_type, "undef") == 0)
+        expression->type = "undef";
+    else if (strcmp(son_1_type, "double") == 0 || strcmp(son_2_type, "double") == 0)
+        expression->type = "double";
+    else if (strcmp(son_1_type, "int") == 0 || strcmp(son_2_type, "int") == 0)
+        expression->type = "int";
+    else if (strcmp(son_1_type, "short") == 0 || strcmp(son_2_type, "short") == 0)
+        expression->type = "short";
+    else if (strcmp(son_1_type, "char") == 0 || strcmp(son_2_type, "char") == 0)
+        expression->type = "char";
 }
 
 
@@ -417,8 +413,16 @@ struct params_list *search_variable_symbol(struct symbols_list *table, char *ide
 // Insert a new variable symbol in the list, unless it is already there
 struct symbols_list *insert_variable_symbol(struct symbols_list *table, char *identifier, char *type) {
     char aux_type[10];
-    strcpy(aux_type, type);
-    aux_type[0] = aux_type[0] + 32;
+
+    if (strcmp(type, "Void") == 0){
+        printf("Invalid use of void type in declaration\n");
+        strcpy(aux_type, "undef");
+        return NULL;
+    }
+    else {
+        strcpy(aux_type, type);
+        aux_type[0] = aux_type[0] + 32;
+    }
 
     struct symbols_list *new = (struct symbols_list *) malloc(sizeof(struct symbols_list));
     new->function = NULL;
