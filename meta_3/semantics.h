@@ -32,7 +32,11 @@ void check_fuction_body(struct node *no, struct function *function);
 void check_statement(struct node *statement, struct function *function);
 void check_expr_comma(struct node *expr_comma_node, struct function *func);
 void check_expression(struct node *expression, struct function *func);
+
 void get_expression_type(struct node *expression, char *son_1_type, char *son_2_type);
+void conflict_types_func_var(char *type, struct node *func_definition, struct params_list *var);
+int wrong_number_of_arguments(struct node *node, int num);
+void conflict_types_call(struct node *node, struct node *call);
 
 struct symbols_list *insert_function_symbol(struct symbols_list *symbol_table, char *identifier, char *type);
 struct symbols_list *search_function_symbol(struct symbols_list *table, char *identifier);
