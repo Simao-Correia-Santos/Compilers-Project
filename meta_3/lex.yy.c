@@ -2293,7 +2293,7 @@ int main(int argc, char const *argv[]) {
         if (syntax_errors == 0){
             check_program(program);
             show_symbol_table();
-            show_ast_tree(program, 0);
+            //show_ast_tree(program, 0);
         }
     }
     if (argc == 1){

@@ -169,7 +169,11 @@ void check_statement(struct node *statement, struct function *function){
             break;
 
         case If:
-            check_expr_comma(getchild(statement, 0), function);
+            body_if = getchild(statement, 0);
+            check_expr_comma(body_if, function);
+
+            if (strcmp(body_if->type, "undef") == 0 || strcmp(body_if->type, "void") == 0 || strcmp(body_if->type, "double") == 0)
+                printf("Conflicting types (got %s, expected int)\n", body_if->type);
 
             body_if = getchild(statement, 1);
             if (body_if != NULL){
@@ -219,16 +223,18 @@ void check_statement(struct node *statement, struct function *function){
 }
 
 void check_expr_comma(struct node *expr_comma_node, struct function *func){
+    struct node *son_1;
+    struct node *son_2;
+
     if (expr_comma_node->category != Comma){
         check_expression(expr_comma_node, func);
     }
     else {
-        int pos = 0;
-        struct node *aux;
-        while ((aux = getchild(expr_comma_node, pos)) != NULL){
-            check_expr_comma(aux, func);
-            pos += 1;
-        }
+        son_1 = getchild(expr_comma_node, 0);
+        son_2 = getchild(expr_comma_node, 1);
+        check_expr_comma(son_1, func);
+        check_expr_comma(son_2, func);
+        get_expression_type(expr_comma_node, son_1->type, son_2->type);
     }
 }
 
@@ -296,32 +302,7 @@ void check_expression(struct node *expression, struct function *func){
 
         case Or:
         case And:
-        case Eq:
-        case Ne:
-        case Lt:
-        case Gt:
-        case Le:
-        case Ge:
         case Mod:
-            son = getchild(expression, 0);
-            son_2 = getchild(expression, 1);
-            check_expression(son, func);
-            check_expression(son_2, func);
-            expression->type = "int";
-            break;
-        
-        case Not:
-        case Plus:
-        case Minus:
-            son = getchild(expression, 0);
-            check_expression(son, func);
-            expression->type = strdup(son->type);
-            break;
-
-        case Add:
-        case Sub:
-        case Mul:
-        case Div:
         case BitWiseAnd:
         case BitWiseOr:
         case BitWiseXor:
@@ -329,16 +310,56 @@ void check_expression(struct node *expression, struct function *func){
             son_2 = getchild(expression, 1);
             check_expression(son, func);
             check_expression(son_2, func);
+            expression->type = "int";
+            operator_conflict_II(expression, son, son_2);
+            break;
+
+        case Not:
+        case Plus:
+        case Minus:
+            son = getchild(expression, 0);
+            check_expression(son, func);
+            expression->type = strdup(son->type);
+            operator_conflict_I(expression);
+            break;
+
+        case Add:
+        case Sub:
+        case Mul:
+        case Div:
+            son = getchild(expression, 0);
+            son_2 = getchild(expression, 1);
+            check_expression(son, func);
+            check_expression(son_2, func);
             get_expression_type(expression, son->type, son_2->type);
+            operator_conflict_III(expression, son, son_2);
+            break;
+
+        case Eq:
+        case Ne:
+        case Lt:
+        case Gt:
+        case Le:
+        case Ge:
+            son = getchild(expression, 0);
+            son_2 = getchild(expression, 1);
+            check_expression(son, func);
+            check_expression(son_2, func);
+            expression->type = "int";
+            operator_conflict_III(expression, son, son_2);
             break;
 
         case Store:
             son = getchild(expression, 0);
+            son_2 = getchild(expression, 1);
             check_expression(son, func);
-            check_expression(getchild(expression, 1), func);
+            check_expression(son_2, func);
             expression->type = strdup(son->type);
             if (strcmp(category_names[son->category], "Identifier") != 0)
                 printf("Lvalue required\n");
+            else {
+                operator_conflic_IV(expression, son, son_2);
+            }
             break;
         
         case Call:
@@ -362,7 +383,7 @@ void check_expression(struct node *expression, struct function *func){
 
 
 void get_expression_type(struct node *expression, char *son_1_type, char *son_2_type){
-    if (strcmp(son_1_type, "undef") == 0 || strcmp(son_2_type, "undef") == 0 || strcmp(son_1_type, "void") == 0 || strcmp(son_2_type, "void"))
+    if (strcmp(son_1_type, "undef") == 0 || strcmp(son_2_type, "undef") == 0 || strcmp(son_1_type, "void") == 0 || strcmp(son_2_type, "void") == 0)
         expression->type = "undef";
     else if (strcmp(son_1_type, "double") == 0 || strcmp(son_2_type, "double") == 0)
         expression->type = "double";
@@ -420,13 +441,130 @@ void conflict_types_call(struct node *node, struct node *call){
     struct params_list *param_list = search_function_symbol(global_symbol_table, node->token)->function->parameters;
 
     while ((aux = getchild(call, pos)) != NULL){
-        if(strcmp(aux->type, param_list->type) != 0 && ((strcmp(aux->type, "int") != 0 || strcmp(param_list->type, "short") != 0) && (strcmp(aux->type, "short") != 0 || strcmp(param_list->type, "int") != 0))){
+        if(strcmp(aux->type, param_list->type) != 0 && !is_int_short_char(aux->type, param_list->type)){
             printf("Conflicting types (got %s, expected %s)\n", aux->type, param_list->type);
         }
         pos += 1;
         param_list = param_list->next;
     }
 }
+
+int is_int_short_char(char *type_1, char *type_2){
+    if ((strcmp(type_1, "int") == 0 && strcmp(type_2, "short") == 0) || (strcmp(type_1, "short") == 0 && strcmp(type_2, "int") == 0))
+        return 1;
+    if ((strcmp(type_1, "int") == 0 && strcmp(type_2, "char") == 0) || (strcmp(type_1, "char") == 0 && strcmp(type_2, "int") == 0))
+        return 1;
+    if ((strcmp(type_1, "char") == 0 && strcmp(type_2, "short") == 0) || (strcmp(type_1, "short") == 0 && strcmp(type_2, "char") == 0))
+        return 1;
+    if (strcmp(type_1, "int") == 0 && strcmp(type_2, "int") == 0)
+        return 1;
+    if (strcmp(type_1, "short") == 0 && strcmp(type_2, "short") == 0)
+        return 1;
+    if (strcmp(type_1, "char") == 0 && strcmp(type_2, "char") == 0)
+        return 1;
+    return 0;
+}
+
+void operator_conflict_I(struct node *node){
+    char *operator = (char*)malloc(sizeof(char));
+    switch (node->category){
+        case Minus:
+            operator = "-";
+            break;
+        case Plus:
+            operator = "+";
+            break;
+        case Not:
+            operator = "!";
+            break;
+        default:
+            break;
+    }
+    if (strcmp(node->type, "void") == 0 || strcmp(node->type, "undef") == 0)
+        printf("Operator %s cannot be applied to type %s\n", operator, node->type);
+}
+
+void operator_conflict_II(struct node *expression, struct node *son_1, struct node *son_2){
+    char *operator = (char*)malloc(sizeof(char)*2);
+
+    switch (expression->category){
+        case BitWiseAnd:
+            operator = "&";
+            break;
+        case BitWiseOr:
+            operator = "|";
+            break;
+        case BitWiseXor:
+            operator = "^";
+            break;
+        case Or:
+            operator = "||";
+            break;
+        case And:
+            operator = "&&";
+            break;
+        case Mod:
+            operator = "%";
+            break;
+        default:
+            break;
+    }
+    if (!is_int_short_char(son_1->type, son_2->type))
+        printf("Operator %s cannot be applied to types %s, %s\n", operator, son_1->type, son_2->type);
+}
+
+void operator_conflict_III(struct node *expression, struct node *son_1, struct node *son_2){
+    char *operator = (char*)malloc(sizeof(char)*2);
+
+    switch(expression->category){
+        case Add:
+            operator = "+";
+            break;
+        case Sub:
+            operator = "-";
+            break;
+        case Mul:
+            operator = "*";
+            break;
+        case Div:
+            operator = "/";
+            break;
+        case Eq:
+            operator = "==";
+            break;
+        case Ne:
+            operator = "!=";
+            break;
+        case Lt:
+            operator = "<=";
+            break;
+        case Gt:
+            operator = ">=";
+            break;
+        case Le:
+            operator = "<";
+            break;
+        case Ge:
+            operator = ">";
+            break;
+        default:
+            break;
+    }
+    if (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0){
+        printf("Operator %s cannot be applied to types %s, %s\n", operator, son_1->type, son_2->type);
+    }
+}
+
+void operator_conflic_IV(struct node *expression, struct node *son_1, struct node *son_2){
+    if ((strcmp(son_2->type, "double") == 0 && strcmp(son_1->type, "double") != 0)){
+        printf("Operator = cannot be applied to types %s, %s\n", son_1->type, son_2->type);
+        return;
+    }
+    if (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0)
+        printf("Operator = cannot be applied to types %s, %s\n", son_1->type, son_2->type); 
+}
+
+
 
 
 // Insert putchar and getchar function´

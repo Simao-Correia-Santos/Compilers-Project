@@ -37,6 +37,11 @@ void get_expression_type(struct node *expression, char *son_1_type, char *son_2_
 void conflict_types_func_var(char *type, struct node *func_definition, struct params_list *var);
 int wrong_number_of_arguments(struct node *node, int num);
 void conflict_types_call(struct node *node, struct node *call);
+int is_int_short_char(char *type_1, char *type_2);
+void operator_conflict_I(struct node *node);
+void operator_conflict_II(struct node *expression, struct node *son_1, struct node *son_2);
+void operator_conflict_III(struct node *expression, struct node *son_1, struct node *son_2);
+void operator_conflic_IV(struct node *expression, struct node *son_1, struct node *son_2);
 
 struct symbols_list *insert_function_symbol(struct symbols_list *symbol_table, char *identifier, char *type);
 struct symbols_list *search_function_symbol(struct symbols_list *table, char *identifier);
