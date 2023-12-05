@@ -154,6 +154,7 @@ void check_declaration(struct node *declaration, int is_global, struct function 
 
 void check_statement(struct node *statement, struct function *function){
     int statListPos = 0;
+    char *aux;
     struct node *sonStatList;
     struct node *body_if;
     struct node *body_else;
@@ -163,7 +164,7 @@ void check_statement(struct node *statement, struct function *function){
     switch(statement->category){
         case StatList:
             while((sonStatList = getchild(statement, statListPos)) != NULL){
-                check_expr_comma(sonStatList, function);
+                check_statement(sonStatList, function);
                 statListPos++;
             }
             break;
@@ -177,7 +178,7 @@ void check_statement(struct node *statement, struct function *function){
 
             body_if = getchild(statement, 1);
             if (body_if != NULL){
-                if (body_if->category == StatList){
+                if (body_if->category == StatList || body_if->category == If || body_if->category == While || body_if->category == Return){
                     check_statement(body_if, function);
                 }
                 else {
@@ -187,7 +188,7 @@ void check_statement(struct node *statement, struct function *function){
 
             body_else = getchild(statement, 2);
             if (body_else != NULL){
-                if (body_else->category == StatList){
+                if (body_if->category == StatList || body_if->category == If || body_if->category == While || body_if->category == Return){
                     check_statement(body_else, function);
                 }
                 else{
@@ -201,7 +202,7 @@ void check_statement(struct node *statement, struct function *function){
 
             body_while = getchild(statement, 1);
             if(body_while != NULL){
-                if (body_while->category == StatList){
+                if (body_while->category == StatList || body_while->category == If || body_while->category == While || body_while->category == Return){
                     check_statement(body_while, function);
                 }
                 else{
@@ -212,8 +213,15 @@ void check_statement(struct node *statement, struct function *function){
 
         case Return:
             expr_comma_node = getchild(statement, 0);
-            if(expr_comma_node != NULL)
+            if(expr_comma_node->category != Null){
                 check_expr_comma(expr_comma_node, function);
+                if (strcmp(function->type, "void") == 0)
+                     printf("Conflicting types (got %s, expected void)\n", expr_comma_node->type);
+            }
+            else{
+                if (strcmp(function->type, "void") != 0)
+                     printf("Conflicting types (got void, expected %s)\n", function->type);
+            } 
             break;
 
         default:
@@ -234,7 +242,7 @@ void check_expr_comma(struct node *expr_comma_node, struct function *func){
         son_2 = getchild(expr_comma_node, 1);
         check_expr_comma(son_1, func);
         check_expr_comma(son_2, func);
-        get_expression_type(expr_comma_node, son_1->type, son_2->type);
+        expr_comma_node->type = strdup(son_2->type);
     }
 }
 
@@ -244,6 +252,7 @@ void check_expression(struct node *expression, struct function *func){
     struct node *son;
     struct node *son_2;
     char buffer[64] = "";
+    int pos = 1;
 
     switch(expression->category){
         case Decimal:
@@ -315,6 +324,12 @@ void check_expression(struct node *expression, struct function *func){
             break;
 
         case Not:
+            son = getchild(expression, 0);
+            check_expression(son, func);
+            expression->type = "int";
+            operator_conflict_I(expression);
+            break;
+
         case Plus:
         case Minus:
             son = getchild(expression, 0);
@@ -363,7 +378,6 @@ void check_expression(struct node *expression, struct function *func){
             break;
         
         case Call:
-            int pos = 1;
             son = getchild(expression, 0);
             check_expression(son, func);
             expression->type = strdup(son->type);
@@ -372,7 +386,7 @@ void check_expression(struct node *expression, struct function *func){
                 pos += 1;
             }
             if (wrong_number_of_arguments(son, pos-1) == 0){
-                conflict_types_call(son, expression);
+                
             }
             break;
         
@@ -427,26 +441,12 @@ int wrong_number_of_arguments(struct node *node, int got){
         }
         if (required == 1 && strcmp(symbol->function->parameters->type, "void") == 0)
             required = 0;
-    }
-    if (got != required){
-        printf("Wrong number of arguments to function %s (got %d, required %d)\n", symbol->function->name, got, required);
-        return 1;
+        if (got != required){
+            printf("Wrong number of arguments to function %s (got %d, required %d)\n", symbol->function->name, got, required);
+            return 1;
+        }
     }
     return 0;
-}
-
-void conflict_types_call(struct node *node, struct node *call){
-    int pos = 1;
-    struct node *aux;
-    struct params_list *param_list = search_function_symbol(global_symbol_table, node->token)->function->parameters;
-
-    while ((aux = getchild(call, pos)) != NULL){
-        if(strcmp(aux->type, param_list->type) != 0 && !is_int_short_char(aux->type, param_list->type)){
-            printf("Conflicting types (got %s, expected %s)\n", aux->type, param_list->type);
-        }
-        pos += 1;
-        param_list = param_list->next;
-    }
 }
 
 int is_int_short_char(char *type_1, char *type_2){
@@ -536,16 +536,16 @@ void operator_conflict_III(struct node *expression, struct node *son_1, struct n
             operator = "!=";
             break;
         case Lt:
-            operator = "<=";
-            break;
-        case Gt:
-            operator = ">=";
-            break;
-        case Le:
             operator = "<";
             break;
-        case Ge:
+        case Gt:
             operator = ">";
+            break;
+        case Le:
+            operator = "<=";
+            break;
+        case Ge:
+            operator = ">=";
             break;
         default:
             break;

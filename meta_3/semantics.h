@@ -36,7 +36,6 @@ void check_expression(struct node *expression, struct function *func);
 void get_expression_type(struct node *expression, char *son_1_type, char *son_2_type);
 void conflict_types_func_var(char *type, struct node *func_definition, struct params_list *var);
 int wrong_number_of_arguments(struct node *node, int num);
-void conflict_types_call(struct node *node, struct node *call);
 int is_int_short_char(char *type_1, char *type_2);
 void operator_conflict_I(struct node *node);
 void operator_conflict_II(struct node *expression, struct node *son_1, struct node *son_2);
