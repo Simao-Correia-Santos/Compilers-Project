@@ -136,25 +136,22 @@ void check_declaration(struct node *declaration, int is_global, struct function 
     struct node *identifier_node = getchild(declaration, 1);
     struct node *expr_comma_node = getchild(declaration, 2);
 
-    if (strcmp(category_names[typespec_node->category], "Void") == 0){
-        printf("Invalid use of void type in declaration\n");
-    }
-
-    else if (is_global && search_variable_symbol(global_symbol_table, identifier_node->token) == NULL){
+    if (is_global && search_variable_symbol(global_symbol_table, identifier_node->token) == NULL && strcmp(category_names[typespec_node->category], "Void") != 0){
         insert_variable_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
     }
-    else if (!is_global && search_local_variable(function, identifier_node->token) == NULL){
+    else if (!is_global && search_local_variable(function, identifier_node->token) == NULL && strcmp(category_names[typespec_node->category], "Void") != 0){
         insert_local_variable(function, category_names[typespec_node->category], identifier_node->token);
     }
 
-    if (expr_comma_node != NULL){
+    if (expr_comma_node != NULL)
         check_expr_comma(expr_comma_node, function);
-    }    
+    
+    if (strcmp(category_names[typespec_node->category], "Void") == 0)
+        printf("Invalid use of void type in declaration\n");  
 }
 
 void check_statement(struct node *statement, struct function *function){
     int statListPos = 0;
-    char *aux;
     struct node *sonStatList;
     struct node *body_if;
     struct node *body_else;
@@ -188,7 +185,7 @@ void check_statement(struct node *statement, struct function *function){
 
             body_else = getchild(statement, 2);
             if (body_else != NULL){
-                if (body_if->category == StatList || body_if->category == If || body_if->category == While || body_if->category == Return){
+                if (body_else->category == StatList || body_else->category == If || body_else->category == While || body_else->category == Return){
                     check_statement(body_else, function);
                 }
                 else{
@@ -217,6 +214,8 @@ void check_statement(struct node *statement, struct function *function){
                 check_expr_comma(expr_comma_node, function);
                 if (strcmp(function->type, "void") == 0)
                      printf("Conflicting types (got %s, expected void)\n", expr_comma_node->type);
+                else if (strcmp(expr_comma_node->type, "double") == 0 && strcmp(function->type, "double") != 0)
+                    printf("Conflicting types (got double, expected %s)\n", function->type);
             }
             else{
                 if (strcmp(function->type, "void") != 0)
