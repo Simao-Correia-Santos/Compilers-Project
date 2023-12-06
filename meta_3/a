@@ -1,8 +1,49 @@
-int main(void) {
-  char a = 'a';
+double df(double d, double dd) {
+int ch0=20,calc;
+    char ch1;
+    if(ch0=3||ch0==3){
+        infinite_putchar(ch0);
+    } else{infinite_putchar(ch0=ch0+10);}
+    ch2=getchar();
+    ch1=getchar();
+      char a = 'a';
   short b = 2;
   int c = 3;
   double d = 3.0;
-  if(+d){}
-    return 0;
+  	double x=1.5;
+	
+	int a=1,b=2,c=3;
+	
+	short d=4;
+	
+	char c = 'a';
+	
+	a=(-1*3+2/4);
+        short a;
+    char c;
+
+    function(1) + function(1);
+
+    10 * (5 < function(1));
+
+    5.5 % nao_existe();
+    
+    5.5 / 5.5;
+
+    5.5 >= 5;
+
+    5.5 != a;
+
+    5 == a;
+
+    5.5 ^ c;
+
+    a && c;
+
+    c + c;
+
+    c = 5;
+
+    c = 5.5;
+	return df(d, e);
 }

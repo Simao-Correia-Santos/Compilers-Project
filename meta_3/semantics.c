@@ -135,12 +135,15 @@ void check_declaration(struct node *declaration, int is_global, struct function 
     struct node *typespec_node = getchild(declaration, 0);
     struct node *identifier_node = getchild(declaration, 1);
     struct node *expr_comma_node = getchild(declaration, 2);
-
+    
     if (is_global && search_variable_symbol(global_symbol_table, identifier_node->token) == NULL && strcmp(category_names[typespec_node->category], "Void") != 0){
         insert_variable_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
     }
-    else if (!is_global && search_local_variable(function, identifier_node->token) == NULL && strcmp(category_names[typespec_node->category], "Void") != 0){
-        insert_local_variable(function, category_names[typespec_node->category], identifier_node->token);
+    else if (!is_global && strcmp(category_names[typespec_node->category], "Void") != 0){
+        if (search_parameters_list(function, identifier_node->token) == NULL && search_local_variable(function, identifier_node->token) == NULL)
+            insert_local_variable(function, category_names[typespec_node->category], identifier_node->token);
+        else
+            printf("Symbol %s already defined\n", identifier_node->token);
     }
 
     if (expr_comma_node != NULL)
@@ -195,7 +198,11 @@ void check_statement(struct node *statement, struct function *function){
             break;
 
         case While:
-            check_expr_comma(getchild(statement, 0), function);
+            body_while = getchild(statement, 0);
+            check_expr_comma(body_while, function);
+
+            if (strcmp(body_while->type, "undef") == 0 || strcmp(body_while->type, "void") == 0 || strcmp(body_while->type, "double") == 0)
+                printf("Conflicting types (got %s, expected int)\n", body_while->type);
 
             body_while = getchild(statement, 1);
             if(body_while != NULL){
@@ -217,9 +224,8 @@ void check_statement(struct node *statement, struct function *function){
                 else if (strcmp(expr_comma_node->type, "double") == 0 && strcmp(function->type, "double") != 0)
                     printf("Conflicting types (got double, expected %s)\n", function->type);
             }
-            else{
-                if (strcmp(function->type, "void") != 0)
-                     printf("Conflicting types (got void, expected %s)\n", function->type);
+            else if (strcmp(function->type, "void") != 0){
+                printf("Conflicting types (got void, expected %s)\n", function->type);
             } 
             break;
 
@@ -384,7 +390,7 @@ void check_expression(struct node *expression, struct function *func){
                 check_expression(son_2, func);
                 pos += 1;
             }
-            if (wrong_number_of_arguments(son, pos-1) == 0){
+            if (wrong_number_of_arguments(expression, pos-1) == 0){
                 
             }
             break;
@@ -430,8 +436,9 @@ void conflict_types_func_var(char *type, struct node *param_list, struct params_
 
 int wrong_number_of_arguments(struct node *node, int got){
     int required = 0;
+    int pos = 0;
 
-    struct symbols_list *symbol = search_function_symbol(global_symbol_table, node->token);
+    struct symbols_list *symbol = search_function_symbol(global_symbol_table, getchild(node, 0)->token);
     if (symbol != NULL){
         struct params_list *aux = symbol->function->parameters;
         while (aux != NULL){
@@ -444,6 +451,13 @@ int wrong_number_of_arguments(struct node *node, int got){
             printf("Wrong number of arguments to function %s (got %d, required %d)\n", symbol->function->name, got, required);
             return 1;
         }
+    }
+    else {
+        while(getchild(node, pos+1) != NULL)
+            pos += 1;
+        if (pos != 0)
+            printf("Wrong number of arguments to function %s (got %d, required 0)\n", getchild(node, 0)->token, pos);
+        return 1;
     }
     return 0;
 }
