@@ -12,6 +12,7 @@ struct function {
 	int is_defined;
 	char *name;
 	char *type;
+	struct node *node;
 	struct params_list *parameters;
 	struct params_list *variables;
 };
@@ -33,6 +34,8 @@ void check_statement(struct node *statement, struct function *function);
 void check_expr_comma(struct node *expr_comma_node, struct function *func);
 void check_expression(struct node *expression, struct function *func);
 
+void get_comparison_annotation(char *tipo, struct node *node, struct node *params_list);
+void get_annotation(struct symbols_list *symbol, struct node *node);
 void get_expression_type(struct node *expression, char *son_1_type, char *son_2_type);
 void conflict_types_func_var(char *type, struct node *func_definition, struct params_list *var);
 int wrong_number_of_arguments(struct node *node, int num);
@@ -41,6 +44,7 @@ void operator_conflict_I(struct node *node);
 void operator_conflict_II(struct node *expression, struct node *son_1, struct node *son_2);
 void operator_conflict_III(struct node *expression, struct node *son_1, struct node *son_2);
 void operator_conflic_IV(struct node *expression, struct node *son_1, struct node *son_2);
+void conflicts_call(struct node *call);
 
 struct symbols_list *insert_function_symbol(struct symbols_list *symbol_table, char *identifier, char *type);
 struct symbols_list *search_function_symbol(struct symbols_list *table, char *identifier);

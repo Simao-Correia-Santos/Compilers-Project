@@ -48,16 +48,28 @@ void check_func_definition(struct node *func_definition){
         conflict_types_func_var(category_names[typespec_node->category], getchild(func_definition, 2), var);
         return;
     }
+    if (symbol != NULL){
+        get_comparison_annotation(category_names[typespec_node->category], identifier_node, getchild(func_definition, 2));
+        if (strcmp(identifier_node->annotation, symbol->function->node->annotation) != 0){
+            printf("Conflicting types (got %s, expected %s)\n", identifier_node->annotation, symbol->function->node->annotation);
+            return;
+        }
+    }
 
     if (symbol == NULL || symbol->function->is_defined == 0){
-        if (symbol == NULL)
+        if (symbol == NULL){
             symbol = insert_function_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
+            symbol->function->node = identifier_node;
+        }
         symbol->function->is_defined = 1;
 
         if (symbol->function->parameters != NULL){
             symbol->function->parameters = NULL;
         }
         check_parameter_declarator(getchild(func_definition, 2), symbol->function);
+
+        if (identifier_node->annotation == NULL)
+            get_annotation(symbol, identifier_node);
 
         check_fuction_body(getchild(func_definition, 3), symbol->function);
     }
@@ -79,17 +91,25 @@ void check_fuction_body(struct node *func_body, struct function *function){
 }
 
 void check_func_declaration(struct node *func_declaration){
-    struct symbols_list *symbol;
-
     struct node *typespec_node = getchild(func_declaration, 0);
     struct node *identifier_node = getchild(func_declaration, 1);
 
-    if (search_function_symbol(global_symbol_table, identifier_node->token) == NULL){
+    struct symbols_list *symbol = search_function_symbol(global_symbol_table, identifier_node->token);
+
+    if (symbol == NULL){
         symbol = insert_function_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
+        symbol->function->node = identifier_node;
 
         if (symbol->function->is_defined == 0){
            check_parameter_declarator(getchild(func_declaration, 2), symbol->function);
         }
+        if (identifier_node->annotation == NULL)
+            get_annotation(symbol, identifier_node);
+    }
+    else {
+        get_comparison_annotation(category_names[typespec_node->category], identifier_node, getchild(func_declaration, 2));
+        if (strcmp(identifier_node->annotation, symbol->function->node->annotation) != 0)
+            printf("Conflicting types (got %s, expected %s)\n", identifier_node->annotation, symbol->function->node->annotation);
     }
 }
 
@@ -132,12 +152,24 @@ void check_parameter_declarator(struct node *params_list, struct function *funct
 }
 
 void check_declaration(struct node *declaration, int is_global, struct function *function){
+    struct params_list *aux;
+    char aux_type[10];
+
     struct node *typespec_node = getchild(declaration, 0);
     struct node *identifier_node = getchild(declaration, 1);
     struct node *expr_comma_node = getchild(declaration, 2);
+
+    strcpy(aux_type, category_names[typespec_node->category]);
+    aux_type[0] = aux_type[0] + 32;
     
-    if (is_global && search_variable_symbol(global_symbol_table, identifier_node->token) == NULL && strcmp(category_names[typespec_node->category], "Void") != 0){
-        insert_variable_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
+    if (expr_comma_node != NULL)
+        check_expr_comma(expr_comma_node, function);
+
+    if (is_global && strcmp(category_names[typespec_node->category], "Void") != 0){
+        if ((aux = search_variable_symbol(global_symbol_table, identifier_node->token)) == NULL)
+            insert_variable_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
+        else if(strcmp(aux->type, aux_type) != 0)
+            printf("Conflicting types (got %s, expected %s)\n", aux_type, aux->type);
     }
     else if (!is_global && strcmp(category_names[typespec_node->category], "Void") != 0){
         if (search_parameters_list(function, identifier_node->token) == NULL && search_local_variable(function, identifier_node->token) == NULL)
@@ -145,9 +177,6 @@ void check_declaration(struct node *declaration, int is_global, struct function 
         else
             printf("Symbol %s already defined\n", identifier_node->token);
     }
-
-    if (expr_comma_node != NULL)
-        check_expr_comma(expr_comma_node, function);
     
     if (strcmp(category_names[typespec_node->category], "Void") == 0)
         printf("Invalid use of void type in declaration\n");  
@@ -219,7 +248,7 @@ void check_statement(struct node *statement, struct function *function){
             expr_comma_node = getchild(statement, 0);
             if(expr_comma_node->category != Null){
                 check_expr_comma(expr_comma_node, function);
-                if (strcmp(function->type, "void") == 0)
+                if (strcmp(function->type, "void") == 0 && strcmp(expr_comma_node->type, "void") != 0)
                      printf("Conflicting types (got %s, expected void)\n", expr_comma_node->type);
                 else if (strcmp(expr_comma_node->type, "double") == 0 && strcmp(function->type, "double") != 0)
                     printf("Conflicting types (got double, expected %s)\n", function->type);
@@ -256,7 +285,6 @@ void check_expression(struct node *expression, struct function *func){
     struct params_list *aux_list;
     struct node *son;
     struct node *son_2;
-    char buffer[64] = "";
     int pos = 1;
 
     switch(expression->category){
@@ -274,18 +302,8 @@ void check_expression(struct node *expression, struct function *func){
 
             if (symbol != NULL){
                 aux_list = symbol->function->parameters;
-
-                strcat(buffer, symbol->function->type);
-                strcat(buffer, "(");
-                while (aux_list != NULL){
-                    strcat(buffer, aux_list->type);
-                    if (aux_list->next != NULL)
-                        strcat(buffer, ",");
-                    aux_list = aux_list->next;
-                }
-                strcat(buffer, ")");
+                get_annotation(symbol, expression);
                 expression->type = symbol->function->type;
-                expression->annotation = strdup(buffer);
             }
             else {
                 aux_list = search_variable_symbol(global_symbol_table, expression->token);
@@ -391,7 +409,7 @@ void check_expression(struct node *expression, struct function *func){
                 pos += 1;
             }
             if (wrong_number_of_arguments(expression, pos-1) == 0){
-                
+                conflicts_call(expression);
             }
             break;
         
@@ -400,6 +418,47 @@ void check_expression(struct node *expression, struct function *func){
     }
 }
 
+
+
+void get_comparison_annotation(char *tipo, struct node *node, struct node *params_list){
+    struct node *aux_node;
+    char buffer[128] = "";
+    char aux[10];
+    int pos = 0;
+    
+    strcpy(aux, tipo);
+    aux[0] = aux[0] + 32;
+
+    strcat(buffer, aux);
+    strcat(buffer, "(");
+
+    while((aux_node = getchild(params_list, pos)) != NULL){
+        strcpy(aux, category_names[getchild(aux_node, 0)->category]);
+        aux[0] = aux[0] + 32;
+        strcat(buffer, aux);
+        if (getchild(params_list, pos+1) != NULL)
+            strcat(buffer, ",");
+        pos += 1;
+    }
+    strcat(buffer, ")");
+    node->annotation = strdup(buffer);
+}
+
+void get_annotation(struct symbols_list *symbol, struct node *node){
+    char buffer[128] = "";
+    struct params_list *aux_list = symbol->function->parameters;
+
+    strcat(buffer, symbol->function->type);
+    strcat(buffer, "(");
+    while (aux_list != NULL){
+        strcat(buffer, aux_list->type);
+        if (aux_list->next != NULL)
+            strcat(buffer, ",");
+        aux_list = aux_list->next;
+    }
+    strcat(buffer, ")");
+    node->annotation = strdup(buffer);
+}
 
 void get_expression_type(struct node *expression, char *son_1_type, char *son_2_type){
     if (strcmp(son_1_type, "undef") == 0 || strcmp(son_2_type, "undef") == 0 || strcmp(son_1_type, "void") == 0 || strcmp(son_2_type, "void") == 0)
@@ -577,7 +636,23 @@ void operator_conflic_IV(struct node *expression, struct node *son_1, struct nod
         printf("Operator = cannot be applied to types %s, %s\n", son_1->type, son_2->type); 
 }
 
+void conflicts_call(struct node *call){
+    struct params_list *params = search_function_symbol(global_symbol_table, getchild(call, 0)->token)->function->parameters;
+    struct node *aux;
+    int pos = 1;
 
+    while ((aux = getchild(call, pos)) != NULL){
+        if (strcmp(aux->type, "undef") == 0 || strcmp(aux->type, "void") == 0 || (strcmp(aux->type, "double") == 0 && strcmp(params->type, "double") != 0)){
+            if (aux->annotation == NULL)
+                printf("Conflicting types (got %s, expected %s)\n", aux->type, params->type);
+            else 
+                printf("Conflicting types (got %s, expected %s)\n", aux->annotation, params->type);
+        }
+        pos += 1;
+        params = params->next;
+    }
+
+}
 
 
 // Insert putchar and getchar function´
@@ -617,7 +692,6 @@ struct symbols_list *insert_function_symbol(struct symbols_list *table, char *id
             symbol->next = new;    /* insert new symbol at the tail of the list */
             break;
         } else if(symbol->function != NULL && strcmp(symbol->function->name, identifier) == 0) {
-            printf("Symbol %s already defined\n", identifier);
             free(new);
             return NULL;           /* return NULL if symbol is already inserted */
         }
@@ -669,7 +743,6 @@ struct symbols_list *insert_variable_symbol(struct symbols_list *table, char *id
             symbol->next = new;    /* insert new symbol at the tail of the list */
             break;
         } else if(symbol->variable != NULL && strcmp(symbol->variable->name, identifier) == 0) {
-            printf("Symbol %s already defined\n", identifier);
             free(new);
             return NULL;           /* return NULL if symbol is already inserted */
         }
