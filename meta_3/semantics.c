@@ -254,7 +254,7 @@ void check_statement(struct node *statement, struct function *function){
                     printf("Line %d, column %d: Conflicting types (got double, expected %s)\n", expr_comma_node->token_line, expr_comma_node->token_column, function->type);
             }
             else if (strcmp(function->type, "void") != 0){
-                    printf("yyyLine %d, column %d: Conflicting types (got void, expected %s)\n",function->node->token_line, function->node->token_column + 1, function->type);
+                    printf("Line %d, column %d: Conflicting types (got void, expected %s)\n", expr_comma_node->token_line, expr_comma_node->token_column + 1, function->type);
             } 
             break;
 
@@ -673,6 +673,9 @@ void conflicts_call(struct node *call){
     }
 }
 
+
+
+
 // Insert putchar and getchar function´
 void insert_putchar_getchar(struct node *node){
     struct symbols_list *putchar = insert_function_symbol(global_symbol_table, "putchar", "Int");
@@ -779,7 +782,6 @@ struct params_list *search_local_variable(struct function *function, char *ident
     }
     return NULL;
 }
-
 
 // Insert e new local variable in the list, unless it is already there
 struct params_list *insert_local_variable(struct function *function, char *type, char *identifier, struct node *node){

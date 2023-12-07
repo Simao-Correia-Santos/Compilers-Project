@@ -1831,13 +1831,13 @@ yyreduce:
 
   case 47: /* Expr_call: Expr_call COMMA Expr  */
 #line 145 "uccompiler.y"
-                                {(yyval.node) = (yyvsp[-2].node); addBrother((yyval.node), (yyvsp[0].node));}
+                                {(yyval.node) = (yyvsp[-2].node); addBrother((yyval.node), (yyvsp[0].node)); LOCATE((yyvsp[0].node), (yylsp[-2]).first_line, (yylsp[-2]).first_column);}
 #line 1836 "y.tab.c"
     break;
 
   case 48: /* Expr_call: Expr  */
 #line 146 "uccompiler.y"
-                {(yyval.node) = (yyvsp[0].node);}
+                {(yyval.node) = (yyvsp[0].node); LOCATE((yyval.node), (yylsp[0]).first_line, (yylsp[0]).first_column);}
 #line 1842 "y.tab.c"
     break;
 
