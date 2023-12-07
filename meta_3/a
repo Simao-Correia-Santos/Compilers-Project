@@ -1,3 +1,4 @@
-int okokok(void){
- int i=i+i;
-}
+int a;
+char a;
+short a;
+double a;

@@ -34,6 +34,7 @@ void check_statement(struct node *statement, struct function *function);
 void check_expr_comma(struct node *expr_comma_node, struct function *func);
 void check_expression(struct node *expression, struct function *func);
 
+int void_parameters(struct node *params_list);
 void get_comparison_annotation(char *tipo, struct node *node, struct node *params_list);
 void get_annotation(struct symbols_list *symbol, struct node *node);
 void get_expression_type(struct node *expression, char *son_1_type, char *son_2_type);

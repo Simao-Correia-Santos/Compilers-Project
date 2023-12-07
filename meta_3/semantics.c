@@ -56,8 +56,8 @@ void check_func_definition(struct node *func_definition){
         }
     }
 
-    if (symbol == NULL || symbol->function->is_defined == 0){
-        if (symbol == NULL){
+    if ((symbol == NULL && !void_parameters(getchild(func_definition, 2))) || symbol->function->is_defined == 0){
+        if (symbol == NULL && !void_parameters(getchild(func_definition, 2))){
             symbol = insert_function_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
             symbol->function->node = identifier_node;
         }
@@ -96,17 +96,17 @@ void check_func_declaration(struct node *func_declaration){
 
     struct symbols_list *symbol = search_function_symbol(global_symbol_table, identifier_node->token);
 
-    if (symbol == NULL){
+    if (symbol == NULL && !void_parameters(getchild(func_declaration, 2))){
         symbol = insert_function_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
         symbol->function->node = identifier_node;
 
-        if (symbol->function->is_defined == 0){
-           check_parameter_declarator(getchild(func_declaration, 2), symbol->function);
-        }
+        if (symbol->function->is_defined == 0)
+            check_parameter_declarator(getchild(func_declaration, 2), symbol->function);
+        
         if (identifier_node->annotation == NULL)
             get_annotation(symbol, identifier_node);
     }
-    else {
+    else if (symbol != NULL){
         get_comparison_annotation(category_names[typespec_node->category], identifier_node, getchild(func_declaration, 2));
         if (strcmp(identifier_node->annotation, symbol->function->node->annotation) != 0)
             printf("Conflicting types (got %s, expected %s)\n", identifier_node->annotation, symbol->function->node->annotation);
@@ -121,11 +121,6 @@ void check_parameter_declarator(struct node *params_list, struct function *funct
     while ((param_decl = getchild(params_list, pos)) != NULL){
         struct node *typespec_node = getchild(param_decl, 0);
         struct node *identifier_node = getchild(param_decl, 1); //PODE SER NULL
-        
-        if (pos == 0 && getchild(params_list, pos+1) != NULL && strcmp(category_names[typespec_node->category], "Void") == 0)
-            printf("Invalid use of void type in declaration\n");
-        else if (strcmp(category_names[typespec_node->category], "Void") == 0 && pos != 0)
-            printf("Invalid use of void type in declaration\n");
 
         struct params_list *new = (struct params_list*) malloc(sizeof(struct params_list));
         if (identifier_node != NULL)
@@ -168,7 +163,7 @@ void check_declaration(struct node *declaration, int is_global, struct function 
     if (is_global && strcmp(category_names[typespec_node->category], "Void") != 0){
         if ((aux = search_variable_symbol(global_symbol_table, identifier_node->token)) == NULL)
             insert_variable_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
-        else if(strcmp(aux->type, aux_type) != 0)
+        else if(strcmp(aux->type, aux_type) != 0 && strcmp(aux->type, "double") == 0)
             printf("Conflicting types (got %s, expected %s)\n", aux_type, aux->type);
     }
     else if (!is_global && strcmp(category_names[typespec_node->category], "Void") != 0){
@@ -419,6 +414,26 @@ void check_expression(struct node *expression, struct function *func){
 }
 
 
+
+int void_parameters(struct node *params_list){
+    struct node *param_decl;
+    int pos = 0;
+
+    while ((param_decl = getchild(params_list, pos)) != NULL){
+        struct node *typespec_node = getchild(param_decl, 0);
+        
+        if (pos == 0 && getchild(params_list, pos+1) != NULL && strcmp(category_names[typespec_node->category], "Void") == 0){
+            printf("Invalid use of void type in declaration\n");
+            return 1;
+        }
+        else if (strcmp(category_names[typespec_node->category], "Void") == 0 && pos != 0){
+            printf("Invalid use of void type in declaration\n");
+            return 1;
+        }
+        pos += 1;
+    }
+    return 0;
+}
 
 void get_comparison_annotation(char *tipo, struct node *node, struct node *params_list){
     struct node *aux_node;
