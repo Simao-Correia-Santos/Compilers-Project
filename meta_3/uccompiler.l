@@ -23,8 +23,9 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
     int row_com, column_com, row_char, column_char;
     char buffer[1024];
     extern struct node *program;
+    int syn_line = -1, syn_column = -1;
 
-    #define YY_USER_ACTION { column += yyleng; }
+    #define YY_USER_ACTION {syn_line = yylloc.first_line = row; syn_column = yylloc.first_column = column; column += yyleng; }
 %}
 
 %X CHAR COMMENT_1 COMMENT_2
@@ -107,7 +108,7 @@ extern int yylex();
 
 void yyerror(char *error) {
     syntax_errors += 1;
-    printf("Line %d, column %d: %s: %s\n", row, column-yyleng+1, error, yytext);
+    printf("Line %d, column %d: %s: %s\n", syn_line, syn_column-yyleng+1, error, yytext);
 }
 
 int main(int argc, char const *argv[]) {

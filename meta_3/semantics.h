@@ -23,7 +23,7 @@ struct symbols_list {
 	struct symbols_list *next;
 };
 
-void insert_putchar_getchar();
+void insert_putchar_getchar(struct node *node);
 void check_program(struct node *program);
 void check_func_definition(struct node *node);
 void check_func_declaration(struct node *node);
@@ -52,7 +52,7 @@ struct symbols_list *search_function_symbol(struct symbols_list *table, char *id
 struct params_list *search_variable_symbol(struct symbols_list *table, char *identifier);
 struct symbols_list *insert_variable_symbol(struct symbols_list *table, char *identifier, char *type);
 struct params_list *search_local_variable(struct function *function, char *identifier);
-struct params_list *insert_local_variable(struct function *function, char *type, char *identifier);
+struct params_list *insert_local_variable(struct function *function, char *type, char *identifier, struct node *node);
 struct params_list *search_parameters_list(struct function *function, char *identifier);
 
 void show_symbol_table();
