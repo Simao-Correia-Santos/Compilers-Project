@@ -3,13 +3,13 @@
 
 enum category {Program, Declaration, FuncDeclaration, FuncDefinition, ParamList, FuncBody, ParamDeclaration, StatList, Or, And, Eq, Ne, Lt, Gt, Le, Ge, Add, Sub, Mul, Div, Mod, Not, Minus, Plus, Store, Comma, Call, BitWiseAnd, BitWiseXor, BitWiseOr, Null, Char, Chrlit, Identifier, Int, Short, Natural, Double, Decimal, Void, If, While, Return, Error};
 #define names {"Program", "Declaration", "FuncDeclaration", "FuncDefinition", "ParamList", "FuncBody", "ParamDeclaration", "StatList", "Or", "And", "Eq", "Ne", "Lt", "Gt", "Le", "Ge", "Add", "Sub", "Mul", "Div", "Mod", "Not", "Minus", "Plus", "Store", "Comma", "Call", "BitWiseAnd", "BitWiseXor", "BitWiseOr", "Null", "Char", "ChrLit", "Identifier", "Int", "Short", "Natural", "Double", "Decimal", "Void", "If", "While", "Return", "Error"};
-
 struct node {
     int children_count;
     enum category category;
     char *type;
     char *token;
     char *annotation;
+    int token_line, token_column;
     struct node *brother;
     struct node_list *children;
 };

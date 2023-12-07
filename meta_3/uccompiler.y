@@ -17,6 +17,11 @@
      struct node* node;
 }
 
+%locations
+%{
+#define LOCATE(node, line, column) { node->token_line = line; node->token_column = column; }
+%}
+
 %right ELSE
 %left COMMA
 %right ASSIGN
@@ -31,8 +36,6 @@
 %left MUL DIV MOD
 %right NOT
 %left LPAR RPAR
-
-
 
 %%
 Program: FunctionsAndDeclarations {$$ = program = newnode(Program, NULL); addchild($$, $1);}
@@ -59,13 +62,13 @@ DeclarationAndStatements: DeclarationAndStatements Statement {if($1 == NULL) $$ 
 
 FunctionDeclaration: TypeSpec FunctionDeclarator SEMI {$$ = newnode(FuncDeclaration, NULL); addchild($$, $1); addchild($$, $2);}
 
-FunctionDeclarator: IDENTIFIER LPAR ParameterList RPAR {$$ = newnode(Identifier, $1); addBrother($$, $3);}
+FunctionDeclarator: IDENTIFIER LPAR ParameterList RPAR {$$ = newnode(Identifier, $1); addBrother($$, $3); LOCATE($$, @1.first_line, @1.first_column);}
 
 ParameterList: ParameterDeclaration {$$ = newnode(ParamList, NULL); addchild($$, $1);}
               |ParameterList COMMA ParameterDeclaration {$$ = $1; if ($1->category == 4) addchild($$, $3); else addBrother($$, $3);}
               ;
 
-ParameterDeclaration: TypeSpec IDENTIFIER {$$ = newnode(ParamDeclaration, NULL); addchild($$, $1); addchild($$, newnode(Identifier, $2));}
+ParameterDeclaration: TypeSpec IDENTIFIER {$$ = newnode(ParamDeclaration, NULL); addchild($$, $1); addchild($$, newnode(Identifier, $2)); LOCATE(getchild($$, 1), @2.first_line, @2.first_column);}
                      |TypeSpec {$$ = newnode(ParamDeclaration, NULL); addchild($$, $1);}
                      ;
 
@@ -80,18 +83,18 @@ Declaration: TypeSpec AuxDeclaration SEMI {
              |error SEMI {$$ = newnode(Error, NULL);}
 
 AuxDeclaration: AuxDeclaration COMMA Declarator {$$ = $1; addBrother($$, $3);}
-               |Declarator{$$ = $1;} 
+               |Declarator {$$ = $1;} 
                ;
 
-TypeSpec: CHR {$$ = newnode(Char, NULL);}
-         |INT {$$ = newnode(Int, NULL);}
-         |VOID {$$ = newnode(Void, NULL);}
-         |SHORT {$$ = newnode(Short, NULL);}
-         |DOUBLE {$$ = newnode(Double, NULL);}
+TypeSpec: CHR {$$ = newnode(Char, NULL); LOCATE($$, @1.first_line, @1.first_column);}
+         |INT {$$ = newnode(Int, NULL); LOCATE($$ , @1.first_line, @1.first_column);}
+         |VOID {$$ = newnode(Void, NULL); LOCATE($$, @1.first_line, @1.first_column);}
+         |SHORT {$$ = newnode(Short, NULL); LOCATE($$ , @1.first_line, @1.first_column);}
+         |DOUBLE {$$ = newnode(Double, NULL); LOCATE($$ , @1.first_line, @1.first_column);}
          ;
 
-Declarator: IDENTIFIER ASSIGN Expr_comma {$$ = newnode(Declaration, NULL); addchild($$, newnode(Identifier, $1)); addchild($$, $3);}
-           |IDENTIFIER {$$ = newnode(Declaration, NULL); addchild($$, newnode(Identifier, $1));}
+Declarator: IDENTIFIER ASSIGN Expr_comma {$$ = newnode(Declaration, NULL); addchild($$, newnode(Identifier, $1)); addchild($$, $3); LOCATE(getchild($$, 0), @1.first_line, @1.first_column);}
+           |IDENTIFIER {$$ = newnode(Declaration, NULL); addchild($$, newnode(Identifier, $1));LOCATE(getchild($$ , 0), @1.first_line, @1.first_column);}
            ;
 
 Statement_error: error SEMI {$$ = newnode(Error, NULL);}
@@ -151,31 +154,31 @@ Expr_comma: Expr_comma COMMA Expr {$$ = newnode(Comma, NULL);
 
 Expr:    IDENTIFIER LPAR error RPAR {$$ = newnode(Error, NULL);}
         |LPAR error RPAR {$$ = newnode(Error, NULL);}
-        |Expr ASSIGN Expr {$$ = newnode(Store, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr PLUS Expr {$$ = newnode(Add, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr MINUS Expr {$$ = newnode(Sub, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr MUL Expr {$$ = newnode(Mul, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr DIV Expr {$$ = newnode(Div, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr MOD Expr {$$ = newnode(Mod, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr OR Expr {$$ = newnode(Or, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr AND Expr {$$ = newnode(And, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr BITWISEAND Expr {$$ = newnode(BitWiseAnd, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr BITWISEOR Expr {$$ = newnode(BitWiseOr, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr BITWISEXOR Expr {$$ = newnode(BitWiseXor, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr EQ Expr {$$ = newnode(Eq, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr NE Expr {$$ = newnode(Ne, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr LE Expr {$$ = newnode(Le, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr GE Expr {$$ = newnode(Ge, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr LT Expr {$$ = newnode(Lt, NULL); addchild($$, $1); addchild($$, $3);}
-        |Expr GT Expr {$$ = newnode(Gt, NULL); addchild($$, $1); addchild($$, $3);}
-        |PLUS Expr %prec NOT {$$ = newnode(Plus, NULL); addchild($$, $2);} 
-        |MINUS Expr %prec NOT {$$ = newnode(Minus, NULL); addchild($$, $2);}
-        |NOT Expr {$$ = newnode(Not, NULL); addchild($$, $2);}
-        |IDENTIFIER LPAR RPAR {$$ = newnode(Call, NULL); addchild($$, newnode(Identifier, $1));}
-        |IDENTIFIER LPAR Expr_call RPAR {$$ = newnode(Call, NULL); addchild($$, newnode(Identifier, $1)); addchild($$, $3);}
-        |IDENTIFIER {$$ = newnode(Identifier, $1);}
-        |NATURAL {$$ = newnode(Natural, $1);}
-        |CHRLIT {$$ = newnode(Chrlit, $1);}
-        |DECIMAL {$$ = newnode(Decimal, $1);}
+        |Expr ASSIGN Expr {$$ = newnode(Store, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr PLUS Expr {$$ = newnode(Add, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr MINUS Expr {$$ = newnode(Sub, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr MUL Expr {$$ = newnode(Mul, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr DIV Expr {$$ = newnode(Div, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr MOD Expr {$$ = newnode(Mod, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr OR Expr {$$ = newnode(Or, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr AND Expr {$$ = newnode(And, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr BITWISEAND Expr {$$ = newnode(BitWiseAnd, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr BITWISEOR Expr {$$ = newnode(BitWiseOr, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr BITWISEXOR Expr {$$ = newnode(BitWiseXor, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr EQ Expr {$$ = newnode(Eq, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr NE Expr {$$ = newnode(Ne, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr LE Expr {$$ = newnode(Le, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr GE Expr {$$ = newnode(Ge, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr LT Expr {$$ = newnode(Lt, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |Expr GT Expr {$$ = newnode(Gt, NULL); addchild($$, $1); addchild($$, $3);LOCATE($$, @2.first_line, @2.first_column);}
+        |PLUS Expr %prec NOT {$$ = newnode(Plus, NULL); addchild($$, $2);LOCATE($$, @1.first_line, @1.first_column);} 
+        |MINUS Expr %prec NOT {$$ = newnode(Minus, NULL); addchild($$, $2);LOCATE($$, @1.first_line, @1.first_column);}
+        |NOT Expr {$$ = newnode(Not, NULL); addchild($$, $2);LOCATE($$, @1.first_line, @1.first_column);}
+        |IDENTIFIER LPAR RPAR {$$ = newnode(Call, NULL); addchild($$, newnode(Identifier, $1)); LOCATE(getchild($$, 0), @1.first_line, @1.first_column);}
+        |IDENTIFIER LPAR Expr_call RPAR {$$ = newnode(Call, NULL); addchild($$, newnode(Identifier, $1)); addchild($$, $3); LOCATE(getchild($$, 0), @1.first_line, @1.first_column);}
+        |IDENTIFIER {$$ = newnode(Identifier, $1); LOCATE($$, @1.first_line, @1.first_column);}
+        |NATURAL {$$ = newnode(Natural, $1);LOCATE($$, @1.first_line, @1.first_column);}
+        |CHRLIT {$$ = newnode(Chrlit, $1);LOCATE($$, @1.first_line, @1.first_column);}
+        |DECIMAL {$$ = newnode(Decimal, $1);LOCATE($$, @1.first_line, @1.first_column);}
         |LPAR Expr_comma RPAR {$$ = $2;}
         ;

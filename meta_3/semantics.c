@@ -9,6 +9,8 @@ struct symbols_list *global_symbol_table;
 // Category names #defined in ast.h
 char *category_names[] = names;
 
+int semantic_errors = 0;
+
 // Check Programa
 void check_program(struct node *program){
     struct node* aux;
@@ -18,7 +20,7 @@ void check_program(struct node *program){
     global_symbol_table->variable = NULL;
     global_symbol_table->next = NULL;
 
-    insert_putchar_getchar();
+    insert_putchar_getchar(program);
 
     for (int i = 0; (aux = getchild(program, i)) != NULL; i++){
         if (aux->category == FuncDefinition){
@@ -41,17 +43,19 @@ void check_func_definition(struct node *func_definition){
     struct params_list *var = search_variable_symbol(global_symbol_table, identifier_node->token);
 
     if (symbol != NULL && symbol->function->is_defined == 1){
-        printf("Symbol %s already defined\n", identifier_node->token);
+        printf("Line %d, column %d: Symbol %s already defined\n", identifier_node->token_line, identifier_node->token_column + 1, identifier_node->token);
+        semantic_errors++;
         return;
     }
     if (var != NULL){
         conflict_types_func_var(category_names[typespec_node->category], getchild(func_definition, 2), var);
         return;
     }
+
     if (symbol != NULL){
         get_comparison_annotation(category_names[typespec_node->category], identifier_node, getchild(func_definition, 2));
         if (strcmp(identifier_node->annotation, symbol->function->node->annotation) != 0){
-            printf("Conflicting types (got %s, expected %s)\n", identifier_node->annotation, symbol->function->node->annotation);
+            printf("Line %d, column %d: Conflicting types (got %s, expected %s)\n", identifier_node->token_line, identifier_node->token_column + 1, identifier_node->annotation, symbol->function->node->annotation);
             return;
         }
     }
@@ -109,7 +113,7 @@ void check_func_declaration(struct node *func_declaration){
     else {
         get_comparison_annotation(category_names[typespec_node->category], identifier_node, getchild(func_declaration, 2));
         if (strcmp(identifier_node->annotation, symbol->function->node->annotation) != 0)
-            printf("Conflicting types (got %s, expected %s)\n", identifier_node->annotation, symbol->function->node->annotation);
+            printf("Line %d, column %d: Conflicting types (got %s, expected %s)\n",identifier_node->token_line, identifier_node->token_column + 1, identifier_node->annotation, symbol->function->node->annotation);
     }
 }
 
@@ -122,11 +126,14 @@ void check_parameter_declarator(struct node *params_list, struct function *funct
         struct node *typespec_node = getchild(param_decl, 0);
         struct node *identifier_node = getchild(param_decl, 1); //PODE SER NULL
         
-        if (pos == 0 && getchild(params_list, pos+1) != NULL && strcmp(category_names[typespec_node->category], "Void") == 0)
-            printf("Invalid use of void type in declaration\n");
-        else if (strcmp(category_names[typespec_node->category], "Void") == 0 && pos != 0)
-            printf("Invalid use of void type in declaration\n");
-
+        if (pos == 0 && getchild(params_list, pos+1) != NULL && strcmp(category_names[typespec_node->category], "Void") == 0){
+            printf("Line %d, column %d: Invalid use of void type in declaration\n",typespec_node->token_line, typespec_node->token_column + 1);
+            semantic_errors++;
+        }
+        else if (strcmp(category_names[typespec_node->category], "Void") == 0 && pos != 0){
+            printf("Line %d, column %d: Invalid use of void type in declaration\n",typespec_node->token_line, typespec_node->token_column + 1);
+            semantic_errors++;
+        }
         struct params_list *new = (struct params_list*) malloc(sizeof(struct params_list));
         if (identifier_node != NULL)
             new->name = identifier_node->token;
@@ -161,7 +168,7 @@ void check_declaration(struct node *declaration, int is_global, struct function 
 
     strcpy(aux_type, category_names[typespec_node->category]);
     aux_type[0] = aux_type[0] + 32;
-    
+
     if (expr_comma_node != NULL)
         check_expr_comma(expr_comma_node, function);
 
@@ -169,17 +176,18 @@ void check_declaration(struct node *declaration, int is_global, struct function 
         if ((aux = search_variable_symbol(global_symbol_table, identifier_node->token)) == NULL)
             insert_variable_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
         else if(strcmp(aux->type, aux_type) != 0)
-            printf("Conflicting types (got %s, expected %s)\n", aux_type, aux->type);
+            printf("Line %d, column %d: Conflicting types (got %s, expected %s)\n",identifier_node->token_line, identifier_node->token_column + 1, aux_type, aux->type);
     }
     else if (!is_global && strcmp(category_names[typespec_node->category], "Void") != 0){
         if (search_parameters_list(function, identifier_node->token) == NULL && search_local_variable(function, identifier_node->token) == NULL)
-            insert_local_variable(function, category_names[typespec_node->category], identifier_node->token);
+            insert_local_variable(function, category_names[typespec_node->category], identifier_node->token, identifier_node);
         else
-            printf("Symbol %s already defined\n", identifier_node->token);
+            printf("Line %d, column %d: Symbol %s already defined\n", identifier_node->token_line, identifier_node->token_column + 1, identifier_node->token);
     }
     
-    if (strcmp(category_names[typespec_node->category], "Void") == 0)
-        printf("Invalid use of void type in declaration\n");  
+    if(strcmp(category_names[typespec_node->category], "Void") == 0){ 
+        printf("Line %d, column %d: Invalid use of void type in declaration\n",identifier_node->token_line, identifier_node->token_column + 1);
+    }
 }
 
 void check_statement(struct node *statement, struct function *function){
@@ -203,7 +211,7 @@ void check_statement(struct node *statement, struct function *function){
             check_expr_comma(body_if, function);
 
             if (strcmp(body_if->type, "undef") == 0 || strcmp(body_if->type, "void") == 0 || strcmp(body_if->type, "double") == 0)
-                printf("Conflicting types (got %s, expected int)\n", body_if->type);
+                printf("Line %d, column %d: Conflicting types (got %s, expected int)\n",body_if->token_line, body_if->token_column + 1,  body_if->type);
 
             body_if = getchild(statement, 1);
             if (body_if != NULL){
@@ -226,12 +234,13 @@ void check_statement(struct node *statement, struct function *function){
             }
             break;
 
+
         case While:
             body_while = getchild(statement, 0);
             check_expr_comma(body_while, function);
 
             if (strcmp(body_while->type, "undef") == 0 || strcmp(body_while->type, "void") == 0 || strcmp(body_while->type, "double") == 0)
-                printf("Conflicting types (got %s, expected int)\n", body_while->type);
+                printf("Line %d, column %d: Conflicting types (got %s, expected int)\n", body_while->token_line, body_while->token_column + 1, body_while->type);
 
             body_while = getchild(statement, 1);
             if(body_while != NULL){
@@ -249,12 +258,12 @@ void check_statement(struct node *statement, struct function *function){
             if(expr_comma_node->category != Null){
                 check_expr_comma(expr_comma_node, function);
                 if (strcmp(function->type, "void") == 0 && strcmp(expr_comma_node->type, "void") != 0)
-                     printf("Conflicting types (got %s, expected void)\n", expr_comma_node->type);
+                    printf("Line %d, column %d: Conflicting types (got %s, expected void)\n", expr_comma_node->token_line, expr_comma_node->token_column + 1, expr_comma_node->type);
                 else if (strcmp(expr_comma_node->type, "double") == 0 && strcmp(function->type, "double") != 0)
-                    printf("Conflicting types (got double, expected %s)\n", function->type);
+                    printf("Line %d, column %d: Conflicting types (got double, expected %s)\n", expr_comma_node->token_line, expr_comma_node->token_column, function->type);
             }
             else if (strcmp(function->type, "void") != 0){
-                printf("Conflicting types (got void, expected %s)\n", function->type);
+                    printf("yyyLine %d, column %d: Conflicting types (got void, expected %s)\n",function->node->token_line, function->node->token_column + 1, function->type);
             } 
             break;
 
@@ -312,7 +321,7 @@ void check_expression(struct node *expression, struct function *func){
                 else {
                     if (func == NULL){
                         expression->type = "undef";
-                        printf("Unknown symbol %s\n", expression->token);
+                        printf("Line %d, column %d: Unknown symbol %s\n",expression->token_line, expression->token_column + 1, expression->token);
                     }
                     else {
                         aux_list = search_local_variable(func, expression->token);
@@ -324,7 +333,7 @@ void check_expression(struct node *expression, struct function *func){
                                 expression->type = strdup(aux_list->type);
                             else {
                                 expression->type = "undef";
-                                printf("Unknown symbol %s\n", expression->token);
+                                printf("Line %d, column %d: Unknown symbol %s\n", expression->token_line, expression->token_column + 1, expression->token);
                             }
                         }
                     }
@@ -394,7 +403,7 @@ void check_expression(struct node *expression, struct function *func){
             check_expression(son_2, func);
             expression->type = strdup(son->type);
             if (strcmp(category_names[son->category], "Identifier") != 0)
-                printf("Lvalue required\n");
+                printf("Line %d, column %d: Lvalue required\n", expression->token_line, expression->token_column - 1);
             else {
                 operator_conflic_IV(expression, son, son_2);
             }
@@ -417,8 +426,6 @@ void check_expression(struct node *expression, struct function *func){
             break;
     }
 }
-
-
 
 void get_comparison_annotation(char *tipo, struct node *node, struct node *params_list){
     struct node *aux_node;
@@ -480,7 +487,7 @@ void conflict_types_func_var(char *type, struct node *param_list, struct params_
 
     strcpy(aux_type, type);
     aux_type[0] = aux_type[0] + 32;
-    printf("Conflicting types (got %s(", aux_type);
+    printf("Line %d, column %d: Conflicting types (got %s(", param_list->token_line, param_list->token_column + 1, aux_type);
 
     while ((param_declarator = getchild(param_list, pos)) != NULL){
         if (pos |= 0)
@@ -507,7 +514,7 @@ int wrong_number_of_arguments(struct node *node, int got){
         if (required == 1 && strcmp(symbol->function->parameters->type, "void") == 0)
             required = 0;
         if (got != required){
-            printf("Wrong number of arguments to function %s (got %d, required %d)\n", symbol->function->name, got, required);
+            printf("Line %d, column %d: Wrong number of arguments to function %s (got %d, required %d)\n",getchild(node, 0)->token_line, getchild(node, 0)->token_column + 1,  symbol->function->name, got, required);
             return 1;
         }
     }
@@ -515,7 +522,7 @@ int wrong_number_of_arguments(struct node *node, int got){
         while(getchild(node, pos+1) != NULL)
             pos += 1;
         if (pos != 0)
-            printf("Wrong number of arguments to function %s (got %d, required 0)\n", getchild(node, 0)->token, pos);
+            printf("Line %d, column %d: Wrong number of arguments to function %s (got %d, required 0)\n", getchild(node, 0)->token_line, getchild(node, 0)->token_column + 1, getchild(node, 0)->token, pos);
         return 1;
     }
     return 0;
@@ -553,7 +560,7 @@ void operator_conflict_I(struct node *node){
             break;
     }
     if (strcmp(node->type, "void") == 0 || strcmp(node->type, "undef") == 0)
-        printf("Operator %s cannot be applied to type %s\n", operator, node->type);
+        printf("Line %d, column %d: Operator %s cannot be applied to type %s\n",node->token_line, node->token_column + 1,  operator, node->type);
 }
 
 void operator_conflict_II(struct node *expression, struct node *son_1, struct node *son_2){
@@ -582,7 +589,7 @@ void operator_conflict_II(struct node *expression, struct node *son_1, struct no
             break;
     }
     if (!is_int_short_char(son_1->type, son_2->type))
-        printf("Operator %s cannot be applied to types %s, %s\n", operator, son_1->type, son_2->type);
+        printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column + 1, operator, son_1->type, son_2->type);
 }
 
 void operator_conflict_III(struct node *expression, struct node *son_1, struct node *son_2){
@@ -623,17 +630,17 @@ void operator_conflict_III(struct node *expression, struct node *son_1, struct n
             break;
     }
     if (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0){
-        printf("Operator %s cannot be applied to types %s, %s\n", operator, son_1->type, son_2->type);
+        printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column + 1, operator, son_1->type, son_2->type);
     }
 }
 
 void operator_conflic_IV(struct node *expression, struct node *son_1, struct node *son_2){
     if ((strcmp(son_2->type, "double") == 0 && strcmp(son_1->type, "double") != 0)){
-        printf("Operator = cannot be applied to types %s, %s\n", son_1->type, son_2->type);
+        printf("Line %d, column %d: Operator = cannot be applied to types %s, %s\n", expression->token_line, expression->token_column + 1, son_1->type, son_2->type);
         return;
     }
     if (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0)
-        printf("Operator = cannot be applied to types %s, %s\n", son_1->type, son_2->type); 
+        printf("Line %d, column %d: Operator = cannot be applied to types %s, %s\n", expression->token_line, expression->token_column + 1, son_1->type, son_2->type); 
 }
 
 void conflicts_call(struct node *call){
@@ -644,19 +651,17 @@ void conflicts_call(struct node *call){
     while ((aux = getchild(call, pos)) != NULL){
         if (strcmp(aux->type, "undef") == 0 || strcmp(aux->type, "void") == 0 || (strcmp(aux->type, "double") == 0 && strcmp(params->type, "double") != 0)){
             if (aux->annotation == NULL)
-                printf("Conflicting types (got %s, expected %s)\n", aux->type, params->type);
+                printf("Line %d, column %d: Conflicting types (got %s, expected %s)\n", aux->token_line, aux->token_column + 1, aux->type, params->type);
             else 
-                printf("Conflicting types (got %s, expected %s)\n", aux->annotation, params->type);
+                printf("Line %d, column %d: Conflicting types (got %s, expected %s)\n", aux->token_line, aux->token_column + 1, aux->annotation, params->type);
         }
         pos += 1;
         params = params->next;
     }
-
 }
 
-
 // Insert putchar and getchar function´
-void insert_putchar_getchar(){
+void insert_putchar_getchar(struct node *node){
     struct symbols_list *putchar = insert_function_symbol(global_symbol_table, "putchar", "Int");
     putchar->function->parameters = (struct params_list *) malloc(sizeof(struct params_list));
     putchar->function->parameters->type = "int";
@@ -668,7 +673,7 @@ void insert_putchar_getchar(){
     getchar->function->parameters->type = "void";
     getchar->function->parameters->name = NULL;
     getchar->function->parameters->next = NULL;
-}
+}   
 
 // Insert a new function symbol in the list, unless it is already there
 struct symbols_list *insert_function_symbol(struct symbols_list *table, char *identifier, char *type) {
@@ -762,8 +767,9 @@ struct params_list *search_local_variable(struct function *function, char *ident
     return NULL;
 }
 
+
 // Insert e new local variable in the list, unless it is already there
-struct params_list *insert_local_variable(struct function *function, char *type, char *identifier){
+struct params_list *insert_local_variable(struct function *function, char *type, char *identifier, struct node *node){
     char aux_type[10];
 
     strcpy(aux_type, type);
@@ -782,7 +788,7 @@ struct params_list *insert_local_variable(struct function *function, char *type,
     }
     else {
         if(strcmp(aux_function->variables->name, identifier) == 0) {
-            printf("Symbol %s already defined\n", identifier);
+            printf("Line %d column %d: Symbol %s already defined\n", node->token_line, node->token_column + 1, identifier);
             free(new);
             return NULL;
         } 
