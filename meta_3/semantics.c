@@ -291,16 +291,13 @@ void check_expr_comma(struct node *expr_comma_node, struct function *func){
         son_2 = getchild(expr_comma_node, 1);
         check_expr_comma(son_1, func);
         check_expr_comma(son_2, func);
-        if (son_1->annotation == NULL && son_2->annotation == NULL)
-            expr_comma_node->type = strdup(son_2->type);
-        else if (son_1->annotation != NULL){
-            expr_comma_node->type = "undef";
-            printf("Operator , cannot be applied to types %s, %s\n", son_1->annotation, son_2->type);
-        }
-        else if (son_2->annotation != NULL){
+        
+        if (son_2->annotation != NULL){
             expr_comma_node->type = "undef";
             printf("Operator , cannot be applied to types %s, %s\n", son_1->type, son_2->annotation);
+            return;
         }
+        expr_comma_node->type = strdup(son_2->type);
     }
 }
 
