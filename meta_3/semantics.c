@@ -101,12 +101,18 @@ void check_fuction_body(struct node *func_body, struct function *function){
 }
 
 void check_func_declaration(struct node *func_declaration){
+    int void_parameters_flag;
+
     struct node *typespec_node = getchild(func_declaration, 0);
     struct node *identifier_node = getchild(func_declaration, 1);
 
     struct symbols_list *symbol = search_function_symbol(global_symbol_table, identifier_node->token);
 
-    if (symbol == NULL && !void_parameters(getchild(func_declaration, 2))){
+    if ((void_parameters_flag = void_parameters(getchild(func_declaration, 2))) == 1){
+        return;
+    }
+
+    if (symbol == NULL && !void_parameters_flag){
         symbol = insert_function_symbol(global_symbol_table, identifier_node->token, category_names[typespec_node->category]);
         symbol->function->node = identifier_node;
 
