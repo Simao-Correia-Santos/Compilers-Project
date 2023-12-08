@@ -140,29 +140,31 @@ void check_parameter_declarator(struct node *params_list, struct function *funct
         struct node *typespec_node = getchild(param_decl, 0);
         struct node *identifier_node = getchild(param_decl, 1); //PODE SER NULL
         struct params_list *new = (struct params_list*) malloc(sizeof(struct params_list));
+        new->printable = 1;
         if (identifier_node != NULL){
             new->name = identifier_node->token;
-            if ((parameter_flag = search_parameters_list(function, identifier_node->token)) != NULL)
+            if ((parameter_flag = search_parameters_list(function, identifier_node->token)) != NULL){
                 printf("Symbol %s already defined\n", identifier_node->token); 
+                new->printable = 0;
+            }
         }
         else 
             new->name = NULL;
-        if (parameter_flag == NULL){
-            new->next = NULL;
-            strcpy(aux, category_names[typespec_node->category]);
-            aux[0] = aux[0]+32;
-            new->type = strdup(aux);
+       
+        new->next = NULL;
+        strcpy(aux, category_names[typespec_node->category]);
+        aux[0] = aux[0]+32;
+        new->type = strdup(aux);
 
-            if (function->parameters == NULL){
-                function->parameters = new;
+        if (function->parameters == NULL){
+            function->parameters = new;
+        }
+        else {
+            struct params_list *aux = function->parameters;
+            while (aux->next != NULL){
+                aux = aux->next;
             }
-            else {
-                struct params_list *aux = function->parameters;
-                while (aux->next != NULL){
-                    aux = aux->next;
-                }
-                aux->next = new;
-            }
+            aux->next = new;
         }
         pos++;
     }
@@ -301,8 +303,11 @@ void check_expr_comma(struct node *expr_comma_node, struct function *func){
             printf("Operator , cannot be applied to types %s, %s\n", son_1->type, son_2->annotation);
             return;
         }
-        else if (son_1->annotation != NULL)
+        else if (son_1->annotation != NULL){
+            expr_comma_node->type = strdup(son_2->type);
             printf("Operator , cannot be applied to types %s, %s\n", son_1->annotation, son_2->type);
+            return;
+        }
         expr_comma_node->type = strdup(son_2->type);
     }
 }
@@ -897,7 +902,7 @@ void show_symbol_table_functions(){
             printf("===== Function %s Symbol Table =====\n", aux->function->name);
             printf("return\t%s\n",aux->function->type);
             while(aux->function->parameters != NULL){
-                if (strcmp(aux->function->parameters->type, "void") != 0)
+                if (strcmp(aux->function->parameters->type, "void") != 0 && (aux->function->parameters->printable))
                     printf("%s\t%s\tparam\n", aux->function->parameters->name, aux->function->parameters->type);
                 aux->function->parameters = aux->function->parameters->next;
             }
