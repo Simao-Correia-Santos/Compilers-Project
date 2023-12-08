@@ -698,9 +698,9 @@ char *yytext;
     int row_com, column_com, row_char, column_char;
     char buffer[1024];
     extern struct node *program;
-    int syn_line = -1, syn_column = -1;
+    int syn_line = 1, syn_column = 1;
 
-    #define YY_USER_ACTION {syn_line = yylloc.first_line = row; syn_column = yylloc.first_column = column; column += yyleng; }
+    #define YY_USER_ACTION {syn_line = yylloc.first_line = row; syn_column = yylloc.first_column = column; column += yyleng;}
 #line 705 "lex.yy.c"
 
 #line 707 "lex.yy.c"
@@ -996,7 +996,7 @@ case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
 #line 36 "uccompiler.l"
-{ column = 0; row += 1; }
+{ column = 1; row += 1; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
@@ -1005,7 +1005,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case YY_STATE_EOF(COMMENT_1):
 #line 38 "uccompiler.l"
-{ printf("Line %d, column %d: unterminated comment\n", row_com, column_com-1); BEGIN 0;}
+{ printf("Line %d, column %d: unterminated comment\n", row_com, column_com); BEGIN 0;}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
@@ -1021,13 +1021,13 @@ case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
 #line 42 "uccompiler.l"
-{ column = 0; row += 1; BEGIN 0; }
+{ column = 1; row += 1; BEGIN 0; }
 	YY_BREAK
 case 8:
 /* rule 8 can match eol */
 YY_RULE_SETUP
 #line 44 "uccompiler.l"
-{ if (*yytext == '\n') {column = 0; row += 1;}; }
+{ if (*yytext == '\n') {column = 1; row += 1;}; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
@@ -1237,7 +1237,7 @@ case 49:
 /* rule 49 can match eol */
 YY_RULE_SETUP
 #line 96 "uccompiler.l"
-{ printf("Line %d, column %d: unterminated char constant\n", row_char, column_char); column = 0; row += 1; BEGIN 0; }
+{ printf("Line %d, column %d: unterminated char constant\n", row_char, column_char); column = 1; row += 1; BEGIN 0; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
@@ -1252,7 +1252,7 @@ YY_RULE_SETUP
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT_2):
 #line 100 "uccompiler.l"
-{column += 1; return 0;}
+{if (column != 1) syn_column += 1; return 0;}
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
@@ -2273,7 +2273,7 @@ extern int yylex();
 
 void yyerror(char *error) {
     syntax_errors += 1;
-    printf("Line %d, column %d: %s: %s\n", syn_line, syn_column-yyleng+1, error, yytext);
+    printf("Line %d, column %d: %s: %s\n", syn_line, syn_column, error, yytext);
 }
 
 int main(int argc, char const *argv[]) {
@@ -2294,7 +2294,7 @@ int main(int argc, char const *argv[]) {
         if (syntax_errors == 0){
             check_program(program);
             show_symbol_table();
-            //show_ast_tree(program, 0);
+            show_ast_tree(program, 0);
         }
     }
     if (argc == 1){

@@ -1,7 +1,7 @@
 digit [0-9]
 letter [a-zA-Z]
 reserved "++"|"--"|"["|"]"|"auto"|"break"|"case"|"const"|"continue"|"default"|"do"|"enum"|"extern"|"float"|"for"|"goto"|"long"|"register"|"signed"|"sizeof"|"static"|"struct"|"switch"|"typedef"|"union"|"unsigned"|"volatile"|"_Packed"|"_Bool"|"_Complex"|"_Imaginary"|"inline"|"restrict"
-white_spaces " "|"\n"|"\t"|"\r"|"\n\r"
+white_spaces " "|"\n"|"\t"|"\r"|"\r\n"
 error .
 scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 
@@ -18,14 +18,14 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
     int tokens = 0;
     int pass_tokens = 0;
     int row = 1;
-    int column = 0;
+    int column = 1;
     int syntax_errors = 0;
     int row_com, column_com, row_char, column_char;
     char buffer[1024];
     extern struct node *program;
-    int syn_line = -1, syn_column = -1;
+    int syn_line = 1, syn_column = 1;
 
-    #define YY_USER_ACTION {syn_line = yylloc.first_line = row; syn_column = yylloc.first_column = column; column += yyleng; }
+    #define YY_USER_ACTION {syn_line = yylloc.first_line = row; syn_column = yylloc.first_column = column; column += yyleng;}
 %}
 
 %X CHAR COMMENT_1 COMMENT_2
@@ -33,15 +33,15 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 %%
 "/*"                                               { BEGIN COMMENT_1; row_com = row; column_com = column;}
 <COMMENT_1>.                                       { ; }
-<COMMENT_1>"\n"                                    { column = 0; row += 1; }
+<COMMENT_1>"\n"                                    { column = 1; row += 1; }
 <COMMENT_1>"*/"                                    { BEGIN 0; }
-<COMMENT_1><<EOF>>                                 { printf("Line %d, column %d: unterminated comment\n", row_com, column_com-1); BEGIN 0;}
+<COMMENT_1><<EOF>>                                 { printf("Line %d, column %d: unterminated comment\n", row_com, column_com); BEGIN 0;}
 
 "//"                                               { BEGIN COMMENT_2; }
 <COMMENT_2>.                                       { ; }
-<COMMENT_2>"\n"                                    { column = 0; row += 1; BEGIN 0; }
+<COMMENT_2>"\n"                                    { column = 1; row += 1; BEGIN 0; }
 
-{white_spaces}                                     { if (*yytext == '\n') {column = 0; row += 1;}; }
+{white_spaces}                                     { if (*yytext == '\n') {column = 1; row += 1;}; }
 
 {reserved}                                         { if(tokens) printf("RESERVED(%s)\n", yytext); PASS_TOKEN(); if(pass_tokens) return RESERVED;}
 
@@ -93,11 +93,11 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
 '                                                  { BEGIN CHAR; buffer[0] = '\0'; strcat(buffer, yytext); row_char = row; column_char = column; }
 <CHAR>'                                            { BEGIN 0; strcat(buffer, yytext); printf("Line %d, column %d: invalid char constant (%s)\n", row_char, column_char, buffer); }
 <CHAR><<EOF>>                                      { printf("Line %d, column %d: unterminated char constant\n", row_char, column_char); BEGIN 0; }
-<CHAR>"\n"                                         { printf("Line %d, column %d: unterminated char constant\n", row_char, column_char); column = 0; row += 1; BEGIN 0; }
+<CHAR>"\n"                                         { printf("Line %d, column %d: unterminated char constant\n", row_char, column_char); column = 1; row += 1; BEGIN 0; }
 <CHAR>\\['\\\"]                                    { strcat(buffer, yytext); }
 <CHAR>.                                            { strcat(buffer, yytext); }
 
-<<EOF>>                                            {column += 1; return 0;}
+<<EOF>>                                            {if (column != 1) syn_column += 1; return 0;}
 
 {error}                                            { printf("Line %d, column %d: unrecognized character (%s)\n", row, column, yytext);}
 
@@ -108,7 +108,7 @@ extern int yylex();
 
 void yyerror(char *error) {
     syntax_errors += 1;
-    printf("Line %d, column %d: %s: %s\n", syn_line, syn_column-yyleng+1, error, yytext);
+    printf("Line %d, column %d: %s: %s\n", syn_line, syn_column, error, yytext);
 }
 
 int main(int argc, char const *argv[]) {
@@ -129,7 +129,7 @@ int main(int argc, char const *argv[]) {
         if (syntax_errors == 0){
             check_program(program);
             show_symbol_table();
-            //show_ast_tree(program, 0);
+            show_ast_tree(program, 0);
         }
     }
     if (argc == 1){
