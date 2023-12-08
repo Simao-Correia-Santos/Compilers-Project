@@ -136,6 +136,7 @@ void check_parameter_declarator(struct node *params_list, struct function *funct
     struct params_list *parameter_flag;
 
     while ((param_decl = getchild(params_list, pos)) != NULL){
+        parameter_flag = NULL;
         struct node *typespec_node = getchild(param_decl, 0);
         struct node *identifier_node = getchild(param_decl, 1); //PODE SER NULL
         struct params_list *new = (struct params_list*) malloc(sizeof(struct params_list));
@@ -300,6 +301,8 @@ void check_expr_comma(struct node *expr_comma_node, struct function *func){
             printf("Operator , cannot be applied to types %s, %s\n", son_1->type, son_2->annotation);
             return;
         }
+        else if (son_1->annotation != NULL)
+            printf("Operator , cannot be applied to types %s, %s\n", son_1->annotation, son_2->type);
         expr_comma_node->type = strdup(son_2->type);
     }
 }
