@@ -133,6 +133,7 @@ void check_parameter_declarator(struct node *params_list, struct function *funct
     char aux[10];
     struct node *param_decl;
     int pos = 0;
+    struct params_list *parameter_flag;
 
     while ((param_decl = getchild(params_list, pos)) != NULL){
         struct node *typespec_node = getchild(param_decl, 0);
@@ -140,25 +141,27 @@ void check_parameter_declarator(struct node *params_list, struct function *funct
         struct params_list *new = (struct params_list*) malloc(sizeof(struct params_list));
         if (identifier_node != NULL){
             new->name = identifier_node->token;
-            if (search_parameters_list(function, identifier_node->token) != NULL)
+            if ((parameter_flag = search_parameters_list(function, identifier_node->token)) != NULL)
                 printf("Symbol %s already defined\n", identifier_node->token); 
         }
         else 
             new->name = NULL;
-        new->next = NULL;
-        strcpy(aux, category_names[typespec_node->category]);
-        aux[0] = aux[0]+32;
-        new->type = strdup(aux);
+        if (parameter_flag == NULL){
+            new->next = NULL;
+            strcpy(aux, category_names[typespec_node->category]);
+            aux[0] = aux[0]+32;
+            new->type = strdup(aux);
 
-        if (function->parameters == NULL){
-            function->parameters = new;
-        }
-        else {
-            struct params_list *aux = function->parameters;
-            while (aux->next != NULL){
-                aux = aux->next;
+            if (function->parameters == NULL){
+                function->parameters = new;
             }
-            aux->next = new;
+            else {
+                struct params_list *aux = function->parameters;
+                while (aux->next != NULL){
+                    aux = aux->next;
+                }
+                aux->next = new;
+            }
         }
         pos++;
     }
