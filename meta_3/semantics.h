@@ -37,7 +37,7 @@ void check_expression(struct node *expression, struct function *func);
 int void_parameters(struct node *params_list);
 void get_comparison_annotation(char *tipo, struct node *node, struct node *params_list);
 void get_annotation(struct symbols_list *symbol, struct node *node);
-void get_expression_type(struct node *expression, char *son_1_type, char *son_2_type);
+void get_expression_type(struct node *expression, struct node *son_1, struct node *son_2);
 void conflict_types_func_var(char *type, struct node *func_definition, struct params_list *var);
 int wrong_number_of_arguments(struct node *node, int num);
 int is_int_short_char(char *type_1, char *type_2);
