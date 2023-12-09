@@ -181,8 +181,11 @@ void check_declaration(struct node *declaration, int is_global, struct function 
     strcpy(aux_type, category_names[typespec_node->category]);
     aux_type[0] = aux_type[0] + 32;
 
-    if (expr_comma_node != NULL)
+    if (expr_comma_node != NULL){
         check_expr_comma(expr_comma_node, function);
+        if ((strcmp(aux_type, "int") == 0 || strcmp(aux_type, "short") == 0 || strcmp(aux_type, "char") == 0) && (strcmp(expr_comma_node->type, "double") == 0))
+            printf("Line %d, column %d: Conflicting types (got double, expected %s)\n",identifier_node->token_line, identifier_node->token_column, aux_type);
+    }
 
     if (is_global && strcmp(category_names[typespec_node->category], "Void") != 0){
         if ((aux = search_variable_symbol(global_symbol_table, identifier_node->token)) == NULL)
@@ -468,6 +471,10 @@ int void_parameters(struct node *params_list){
             return 1;
         }
         else if (strcmp(category_names[typespec_node->category], "Void") == 0 && pos != 0){
+            printf("Line %d, column %d: Invalid use of void type in declaration\n", typespec_node->token_line, typespec_node->token_column);
+            return 1;
+        }
+        else if (pos == 0 && strcmp(category_names[typespec_node->category], "Void") == 0 && getchild(param_decl, 1) != NULL){
             printf("Line %d, column %d: Invalid use of void type in declaration\n", typespec_node->token_line, typespec_node->token_column);
             return 1;
         }
