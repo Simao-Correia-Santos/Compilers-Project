@@ -45,7 +45,9 @@ int is_int_short_char(char *type_1, char *type_2);
 void operator_conflict_I(struct node *node);
 void operator_conflict_II(struct node *expression, struct node *son_1, struct node *son_2);
 void operator_conflict_III(struct node *expression, struct node *son_1, struct node *son_2);
-void operator_conflic_IV(struct node *expression, struct node *son_1, struct node *son_2);
+void operator_conflict_IV(struct node *expression, struct node *son_1, struct node *son_2);
+void operator_conflict_V(struct node *node);
+void operator_conflic_VI(struct node *expression, struct node *son_1, struct node *son_2);
 void conflicts_call(struct node *call);
 
 struct symbols_list *insert_function_symbol(struct symbols_list *symbol_table, char *identifier, char *type);

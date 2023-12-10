@@ -226,7 +226,7 @@ void check_statement(struct node *statement, struct function *function){
             check_expr_comma(body_if, function);
 
             if (strcmp(body_if->type, "undef") == 0 || strcmp(body_if->type, "void") == 0 || strcmp(body_if->type, "double") == 0){
-                if(getchild(body_if,1) != NULL)
+                if(getchild(body_if, 1) != NULL)
                     printf("Line %d, column %ld: Conflicting types (got %s, expected int)\n",body_if->token_line, getchild(body_if,0)->token_column + strlen(getchild(body_if,0)->token), body_if->type);
                 else{
                     printf("Line %d, column %d: Conflicting types (got %s, expected int)\n",body_if->token_line, body_if->token_column, body_if->type);
@@ -369,6 +369,14 @@ void check_expression(struct node *expression, struct function *func){
                     }
                 }
             }
+            break;;
+
+        case Plus:
+        case Minus:
+            son = getchild(expression, 0);
+            check_expression(son, func);
+            expression->type = strdup(son->type);
+            operator_conflict_I(expression);
             break;
 
         case Or:
@@ -383,21 +391,6 @@ void check_expression(struct node *expression, struct function *func){
             check_expression(son_2, func);
             expression->type = "int";
             operator_conflict_II(expression, son, son_2);
-            break;
-
-        case Not:
-            son = getchild(expression, 0);
-            check_expression(son, func);
-            expression->type = "int";
-            operator_conflict_I(expression);
-            break;
-
-        case Plus:
-        case Minus:
-            son = getchild(expression, 0);
-            check_expression(son, func);
-            expression->type = strdup(son->type);
-            operator_conflict_I(expression);
             break;
 
         case Add:
@@ -423,7 +416,14 @@ void check_expression(struct node *expression, struct function *func){
             check_expression(son, func);
             check_expression(son_2, func);
             expression->type = "int";
-            operator_conflict_III(expression, son, son_2);
+            operator_conflict_IV(expression, son, son_2);
+            break;
+
+        case Not:
+            son = getchild(expression, 0);
+            check_expression(son, func);
+            expression->type = "int";
+            operator_conflict_V(son);
             break;
 
         case Store:
@@ -435,7 +435,7 @@ void check_expression(struct node *expression, struct function *func){
             if (strcmp(category_names[son->category], "Identifier") != 0)
                 printf("Line %d, column %d: Lvalue required\n", expression->token_line, expression->token_column - 2);
             else {
-                operator_conflic_IV(expression, son, son_2);
+                operator_conflic_VI(expression, son, son_2);
             }
             break;
         
@@ -613,14 +613,11 @@ void operator_conflict_I(struct node *node){
         case Plus:
             operator = "+";
             break;
-        case Not:
-            operator = "!";
-            break;
         default:
             break;
     }
     if (strcmp(node->type, "void") == 0 || strcmp(node->type, "undef") == 0)
-        printf("Line %d, column %d: Operator %s cannot be applied to type %s\n",node->token_line, node->token_column  ,  operator, node->type);
+        printf("Line %d, column %d: Operator %s cannot be applied to type %s\n",node->token_line, node->token_column, operator, node->type);
 }
 
 void operator_conflict_II(struct node *expression, struct node *son_1, struct node *son_2){
@@ -653,7 +650,7 @@ void operator_conflict_II(struct node *expression, struct node *son_1, struct no
 }
 
 void operator_conflict_III(struct node *expression, struct node *son_1, struct node *son_2){
-    char *operator = (char*)malloc(sizeof(char)*2);
+    char *operator = (char*)malloc(sizeof(char));
 
     switch(expression->category){
         case Add:
@@ -668,6 +665,22 @@ void operator_conflict_III(struct node *expression, struct node *son_1, struct n
         case Div:
             operator = "/";
             break;
+        default:
+            break;
+    }
+    if (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0){
+        printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->type, son_2->type);
+    }
+    else if (son_1->annotation != NULL)
+        printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->annotation, son_2->type);
+    else if (son_2->annotation != NULL)
+        printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->type, son_2->annotation);
+}
+
+void operator_conflict_IV(struct node *expression, struct node *son_1, struct node *son_2){
+    char *operator = (char*)malloc(sizeof(char)*2);
+
+    switch(expression->category){
         case Eq:
             operator = "==";
             break;
@@ -689,21 +702,24 @@ void operator_conflict_III(struct node *expression, struct node *son_1, struct n
         default:
             break;
     }
-    if (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0){
-        printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->type, son_2->type);
-    }
-    else if (son_1->annotation != NULL)
-        printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->annotation, son_2->type);
-    else if (son_2->annotation != NULL)
-        printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->type, son_2->annotation);
+    if ((strcmp(son_1->type, "undef") != 0 || strcmp(son_2->type, "undef") != 0) && (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0))
+         printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->type, son_2->type);
 }
 
-void operator_conflic_IV(struct node *expression, struct node *son_1, struct node *son_2){
+void operator_conflict_V(struct node *node){
+    if (strcmp(node->type, "int") != 0 && strcmp(node->type, "char") != 0 && strcmp(node->type, "short") != 0){
+        if (node->annotation == NULL)
+            printf("Line %d, column %d: Operator ! cannot be applied to type %s\n", node->token_line, node->token_column, node->type);
+        else
+            printf("Line %d, column %d: Operator ! cannot be applied to type %s\n", node->token_line, node->token_column, node->annotation);
+    }
+}
+
+void operator_conflic_VI(struct node *expression, struct node *son_1, struct node *son_2){
     if ((strcmp(son_2->type, "double") == 0 && strcmp(son_1->type, "double") != 0)){
         printf("Line %d, column %d: Operator = cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , son_1->type, son_2->type);
-        return;
     }
-    if (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0)
+    else if (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0)
         printf("Line %d, column %d: Operator = cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , son_1->type, son_2->type); 
 }
 
