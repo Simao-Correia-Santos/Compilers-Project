@@ -1843,7 +1843,7 @@ yyreduce:
 
   case 49: /* Expr_comma: Expr_comma COMMA Expr  */
 #line 149 "uccompiler.y"
-                                  {(yyval.node) = newnode(Comma, NULL); LOCATE((yyval.node), (yylsp[-2]).first_line, (yylsp[-2]).first_column);
+                                  {(yyval.node) = newnode(Comma, NULL); LOCATE((yyval.node), (yylsp[-1]).first_line, (yylsp[-1]).first_column);
                                    addchild((yyval.node), (yyvsp[-2].node)); 
                                    addchild((yyval.node), (yyvsp[0].node));}
 #line 1850 "y.tab.c"

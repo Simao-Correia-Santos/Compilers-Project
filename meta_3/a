@@ -1,8 +1,6 @@
-int a , b;
+int a;
+int asf(void);
 
 int main(void){
-  char a;
-  a;
-  a;
-  a;
+  b,a,asf;
 }

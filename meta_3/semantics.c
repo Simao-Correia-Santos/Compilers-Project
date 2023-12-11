@@ -580,8 +580,6 @@ int wrong_number_of_arguments(struct node *node, int got){
     else {
         while(getchild(node, pos+1) != NULL)
             pos += 1;
-        if (pos != 0)
-            printf("Line %d, column %d: Wrong number of arguments to function %s (got %d, required 0)\n", getchild(node, 0)->token_line, getchild(node, 0)->token_column  , getchild(node, 0)->token, pos);
         return 1;
     }
     return 0;
@@ -668,12 +666,12 @@ void operator_conflict_III(struct node *expression, struct node *son_1, struct n
             break;
     }
     if (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0){
-        if (son_1->annotation != NULL && son_2->annotation != NULL)
-            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->annotation, son_2->annotation);
-        else if (son_1->annotation != NULL)
-            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->annotation, son_2->type);
-        else if (son_2->annotation != NULL)
-            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->type, son_2->annotation);
+        if (son_1->category == Call && son_2->category == Call && strcmp(son_1->type, "undef") != 0 && strcmp(son_2->type, "undef") != 0)
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->children->next->node->annotation, son_2->children->next->node->annotation);
+        else if (son_1->category ==  Call && strcmp(son_1->type, "undef") != 0)
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->children->next->node->annotation, son_2->type);
+        else if (son_2->category == Call && strcmp(son_2->type, "undef") != 0)
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->type, son_2->children->next->node->annotation);
         else
             printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->type, son_2->type);
     }
