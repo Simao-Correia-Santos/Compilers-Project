@@ -41,7 +41,6 @@ void get_annotation(struct symbols_list *symbol, struct node *node);
 void get_expression_type(struct node *expression, struct node *son_1, struct node *son_2);
 void conflict_types_func_var(char *type, struct node *func_definition, struct params_list *var);
 int wrong_number_of_arguments(struct node *node, int num);
-int is_int_short_char(char *type_1, char *type_2);
 void operator_conflict_I(struct node *node, struct node *son);
 void operator_conflict_II(struct node *expression, struct node *son_1, struct node *son_2);
 void operator_conflict_III(struct node *expression, struct node *son_1, struct node *son_2);

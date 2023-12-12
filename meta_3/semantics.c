@@ -11,7 +11,7 @@ char *category_names[] = names;
 
 int semantic_errors = 0;
 
-// Check Programa
+// Check Program
 void check_program(struct node *program){
     struct node* aux;
 
@@ -225,7 +225,10 @@ void check_statement(struct node *statement, struct function *function){
             body_if = getchild(statement, 0);
             check_expr_comma(body_if, function);
 
-            if (strcmp(body_if->type, "undef") == 0 || strcmp(body_if->type, "void") == 0 || strcmp(body_if->type, "double") == 0){
+            if (body_if->annotation != NULL)
+                printf("Line %d, column %d: Conflicting types (got %s, expected int)\n",body_if->token_line, body_if->token_column, body_if->annotation);
+
+            else if (strcmp(body_if->type, "undef") == 0 || strcmp(body_if->type, "void") == 0 || strcmp(body_if->type, "double") == 0){
                 if(getchild(body_if, 1) != NULL)
                     printf("Line %d, column %ld: Conflicting types (got %s, expected int)\n",body_if->token_line, getchild(body_if,0)->token_column + strlen(getchild(body_if,0)->token), body_if->type);
                 else{
@@ -259,7 +262,10 @@ void check_statement(struct node *statement, struct function *function){
             body_while = getchild(statement, 0);
             check_expr_comma(body_while, function);
 
-            if (strcmp(body_while->type, "undef") == 0 || strcmp(body_while->type, "void") == 0 || strcmp(body_while->type, "double") == 0)
+            if(body_while->annotation != NULL)
+                printf("Line %d, column %d: Conflicting types (got %s, expected int)\n", body_while->token_line, body_while->token_column, body_while->annotation);
+
+            else if (strcmp(body_while->type, "undef") == 0 || strcmp(body_while->type, "void") == 0 || strcmp(body_while->type, "double") == 0)
                 printf("Line %d, column %d: Conflicting types (got %s, expected int)\n", body_while->token_line, body_while->token_column  , body_while->type);
 
             body_while = getchild(statement, 1);
@@ -307,7 +313,14 @@ void check_expr_comma(struct node *expr_comma_node, struct function *func){
         son_2 = getchild(expr_comma_node, 1);
         check_expr_comma(son_1, func);
         check_expr_comma(son_2, func);
-        if (son_2->annotation != NULL){
+
+        if (son_1->annotation != NULL && son_2->annotation != NULL){
+            expr_comma_node->type = "undef";
+            printf("Line %d, column %d: Operator , cannot be applied to types %s, %s\n", expr_comma_node->token_line, expr_comma_node->token_column, son_1->annotation, son_2->annotation);
+            return;
+        }
+
+        else if (son_2->annotation != NULL){
             expr_comma_node->type = "undef";
             printf("Line %d, column %d: Operator , cannot be applied to types %s, %s\n", expr_comma_node->token_line, expr_comma_node->token_column, son_1->type, son_2->annotation);
             return;
@@ -348,37 +361,35 @@ void check_expression(struct node *expression, struct function *func){
             break;
         
         case Identifier:
+            if (func != NULL){
+                aux_list = search_local_variable(func, expression->token);
+                if (aux_list != NULL){
+                    expression->type = strdup(aux_list->type);
+                    return;
+                }
+                else {
+                    aux_list = search_parameters_list(func, expression->token);
+                    if (aux_list != NULL){
+                        expression->type = strdup(aux_list->type);
+                        return;
+                    }
+                    else if ((aux_list_2 = search_variable_symbol(global_symbol_table, expression->token)) != NULL){
+                        expression->type = strdup(aux_list_2->type);
+                        return;
+                    }
+                }
+            }
             symbol = search_function_symbol(global_symbol_table, expression->token);
-
             if (symbol != NULL){
                 aux_list = symbol->function->parameters;
                 get_annotation(symbol, expression);
                 expression->type = symbol->function->type;
             }
             else {
-                if (func != NULL){
-                    aux_list = search_local_variable(func, expression->token);
-                    if (aux_list != NULL){
-                        expression->type = strdup(aux_list->type);
-                        return;
-                    }
-                    else {
-                        aux_list = search_parameters_list(func, expression->token);
-                        if (aux_list != NULL){
-                            expression->type = strdup(aux_list->type);
-                            return;
-                        }
-                    }
-                }
-                if ((aux_list_2 = search_variable_symbol(global_symbol_table, expression->token)) != NULL){
-                    expression->type = strdup(aux_list_2->type);
-                }
-                else {
-                    expression->type = "undef";
-                    printf("Line %d, column %d: Unknown symbol %s\n", expression->token_line, expression->token_column  , expression->token);
-                }
+                expression->type = "undef";
+                printf("Line %d, column %d: Unknown symbol %s\n", expression->token_line, expression->token_column  , expression->token);
             }
-            break;;
+            break;
 
         case Plus:
         case Minus:
@@ -442,7 +453,7 @@ void check_expression(struct node *expression, struct function *func){
             check_expression(son_2, func);
             expression->type = strdup(son->type);
             if (strcmp(category_names[son->category], "Identifier") != 0)
-                printf("Line %d, column %d: Lvalue required\n", expression->token_line, expression->token_column - 2);
+                printf("Line %d, column %d: Lvalue required\n", expression->token_line, son->token_column);
             else {
                 operator_conflic_VI(expression, son, son_2);
             }
@@ -595,22 +606,6 @@ int wrong_number_of_arguments(struct node *node, int got){
     return 0;
 }
 
-int is_int_short_char(char *type_1, char *type_2){
-    if ((strcmp(type_1, "int") == 0 && strcmp(type_2, "short") == 0) || (strcmp(type_1, "short") == 0 && strcmp(type_2, "int") == 0))
-        return 1;
-    if ((strcmp(type_1, "int") == 0 && strcmp(type_2, "char") == 0) || (strcmp(type_1, "char") == 0 && strcmp(type_2, "int") == 0))
-        return 1;
-    if ((strcmp(type_1, "char") == 0 && strcmp(type_2, "short") == 0) || (strcmp(type_1, "short") == 0 && strcmp(type_2, "char") == 0))
-        return 1;
-    if (strcmp(type_1, "int") == 0 && strcmp(type_2, "int") == 0)
-        return 1;
-    if (strcmp(type_1, "short") == 0 && strcmp(type_2, "short") == 0)
-        return 1;
-    if (strcmp(type_1, "char") == 0 && strcmp(type_2, "char") == 0)
-        return 1;
-    return 0;
-}
-
 void operator_conflict_I(struct node *node, struct node *son){
     char *operator = (char*)malloc(sizeof(char));
     switch (node->category){
@@ -656,15 +651,16 @@ void operator_conflict_II(struct node *expression, struct node *son_1, struct no
         default:
             break;
     }
-    if (!is_int_short_char(son_1->type, son_2->type)){
-        if (son_1->annotation != NULL && son_2->annotation != NULL)
+
+    if (son_1->annotation != NULL && son_2->annotation != NULL)
             printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->annotation, son_2->annotation);
-        else if (son_1->annotation != NULL)
+    else if (son_1->annotation != NULL)
             printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->annotation, son_2->type);
-        else if (son_2->annotation != NULL)
+    else if (son_2->annotation != NULL)
             printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->type, son_2->annotation);
-        else
-            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->type, son_2->type);
+
+    else if (strcmp(son_1->type, "undef") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "void") == 0 || strcmp(son_1->type, "double") == 0 || strcmp(son_2->type, "double") == 0){ 
+        printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->type, son_2->type);
     }     
 }
 
@@ -737,7 +733,11 @@ void operator_conflict_IV(struct node *expression, struct node *son_1, struct no
 }
 
 void operator_conflict_V(struct node *node, struct node *expr){
-    if (strcmp(node->type, "int") != 0 && strcmp(node->type, "char") != 0 && strcmp(node->type, "short") != 0){
+    if (node->annotation != NULL)
+    {
+        printf("Line %d, column %d: Operator ! cannot be applied to type %s\n", expr->token_line, expr->token_column, node->annotation);
+    }
+    else if (strcmp(node->type, "int") != 0 && strcmp(node->type, "char") != 0 && strcmp(node->type, "short") != 0){
         if (node->annotation == NULL)
             printf("Line %d, column %d: Operator ! cannot be applied to type %s\n", expr->token_line, expr->token_column, node->type);
         else
@@ -756,7 +756,7 @@ void operator_conflic_VI(struct node *expression, struct node *son_1, struct nod
         flag = 1;
     }
 
-    if (flag)
+    if (flag && (son_1->annotation != NULL || strcmp(son_1->type, "undef") == 0))
         expression->type = "undef";
 
     if (flag && son_1->annotation != NULL && son_2->annotation != NULL)
