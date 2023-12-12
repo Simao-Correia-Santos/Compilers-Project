@@ -317,6 +317,14 @@ void check_expr_comma(struct node *expr_comma_node, struct function *func){
             printf("Line %d, column %d: Operator , cannot be applied to types %s, %s\n",expr_comma_node->token_line, expr_comma_node->token_column, son_1->annotation, son_2->type);
             return;
         }
+        else if (strcmp(son_2->type, "undef") == 0){
+            expr_comma_node->type = "undef";
+            printf("Line %d, column %d: Operator , cannot be applied to types %s, %s\n",expr_comma_node->token_line, expr_comma_node->token_column, son_1->type, son_2->type);
+            return;
+        }
+        else if (strcmp(son_1->type, "undef") == 0)
+            printf("Line %d, column %d: Operator , cannot be applied to types %s, %s\n",expr_comma_node->token_line, expr_comma_node->token_column, son_1->type, son_2->type);
+       
         expr_comma_node->type = strdup(son_2->type);
     }
 }
@@ -747,6 +755,9 @@ void operator_conflic_VI(struct node *expression, struct node *son_1, struct nod
         printf("Line %d, column %d: Operator = cannot be applied to types ", expression->token_line, expression->token_column); 
         flag = 1;
     }
+
+    if (flag)
+        expression->type = "undef";
 
     if (flag && son_1->annotation != NULL && son_2->annotation != NULL)
         printf("%s, %s\n", son_1->annotation, son_2->annotation);

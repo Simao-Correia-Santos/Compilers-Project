@@ -142,7 +142,7 @@ Statement: LBRACE AuxStatement RBRACE {
           |RETURN SEMI {$$ = newnode(Return, NULL); addchild($$, newnode(Null, NULL));}
           ;
 
-Expr_call: Expr_call COMMA Expr {$$ = $1; addBrother($$, $3); LOCATE($3, @1.first_line, @1.first_column);}
+Expr_call: Expr_call COMMA Expr {$$ = $1; addBrother($$, $3); LOCATE($3, @3.first_line, @3.first_column);}
           |Expr {$$ = $1; LOCATE($$, @1.first_line, @1.first_column);}
           ;
 
