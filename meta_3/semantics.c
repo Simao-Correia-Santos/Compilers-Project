@@ -277,8 +277,10 @@ void check_statement(struct node *statement, struct function *function){
             expr_comma_node = getchild(statement, 0);
             if(expr_comma_node->category != Null){
                 check_expr_comma(expr_comma_node, function);
-                if (strcmp(function->type, "void") == 0 && strcmp(expr_comma_node->type, "void") != 0)
-                    printf("Line %d, column %d: Conflicting types (got %s, expected void)\n", expr_comma_node->token_line, expr_comma_node->token_column  , expr_comma_node->type);
+                if (expr_comma_node->annotation != NULL)
+                    printf("Line %d, column %d: Conflicting types (got %s, expected %s)\n", expr_comma_node->token_line, expr_comma_node->token_column, expr_comma_node->annotation, function->type);
+                else if (strcmp(function->type, "void") == 0 && strcmp(expr_comma_node->type, "void") != 0)
+                    printf("Line %d, column %d: Conflicting types (got %s, expected void)\n", expr_comma_node->token_line, expr_comma_node->token_column, expr_comma_node->type);
                 else if (strcmp(expr_comma_node->type, "double") == 0 && strcmp(function->type, "double") != 0)
                     printf("Line %d, column %d: Conflicting types (got double, expected %s)\n", expr_comma_node->token_line, expr_comma_node->token_column, function->type);
             }
