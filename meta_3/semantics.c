@@ -375,7 +375,7 @@ void check_expression(struct node *expression, struct function *func){
             son = getchild(expression, 0);
             check_expression(son, func);
             expression->type = strdup(son->type);
-            operator_conflict_I(expression);
+            operator_conflict_I(expression, son);
             break;
 
         case Or:
@@ -422,7 +422,7 @@ void check_expression(struct node *expression, struct function *func){
             son = getchild(expression, 0);
             check_expression(son, func);
             expression->type = "int";
-            operator_conflict_V(son);
+            operator_conflict_V(son, expression);
             break;
 
         case Store:
@@ -601,7 +601,7 @@ int is_int_short_char(char *type_1, char *type_2){
     return 0;
 }
 
-void operator_conflict_I(struct node *node){
+void operator_conflict_I(struct node *node, struct node *son){
     char *operator = (char*)malloc(sizeof(char));
     switch (node->category){
         case Minus:
@@ -613,8 +613,12 @@ void operator_conflict_I(struct node *node){
         default:
             break;
     }
-    if (strcmp(node->type, "void") == 0 || strcmp(node->type, "undef") == 0)
-        printf("Line %d, column %d: Operator %s cannot be applied to type %s\n",node->token_line, node->token_column, operator, node->type);
+    if (strcmp(node->type, "void") == 0 || strcmp(node->type, "undef") == 0){
+        if (son->annotation != NULL)
+            printf("Line %d, column %d: Operator %s cannot be applied to type %s\n", node->token_line, node->token_column, operator, son->annotation);
+        else 
+            printf("Line %d, column %d: Operator %s cannot be applied to type %s\n", node->token_line, node->token_column, operator, node->type);
+    }
 }
 
 void operator_conflict_II(struct node *expression, struct node *son_1, struct node *son_2){
@@ -642,8 +646,16 @@ void operator_conflict_II(struct node *expression, struct node *son_1, struct no
         default:
             break;
     }
-    if (!is_int_short_char(son_1->type, son_2->type))
-        printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->type, son_2->type);
+    if (!is_int_short_char(son_1->type, son_2->type)){
+        if (son_1->annotation != NULL && son_2->annotation != NULL)
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->annotation, son_2->annotation);
+        else if (son_1->annotation != NULL)
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->annotation, son_2->type);
+        else if (son_2->annotation != NULL)
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->type, son_2->annotation);
+        else
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->type, son_2->type);
+    }     
 }
 
 void operator_conflict_III(struct node *expression, struct node *son_1, struct node *son_2){
@@ -665,15 +677,15 @@ void operator_conflict_III(struct node *expression, struct node *son_1, struct n
         default:
             break;
     }
-    if (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0){
-        if (son_1->category == Call && son_2->category == Call && strcmp(son_1->type, "undef") != 0 && strcmp(son_2->type, "undef") != 0)
-            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->children->next->node->annotation, son_2->children->next->node->annotation);
-        else if (son_1->category ==  Call && strcmp(son_1->type, "undef") != 0)
-            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->children->next->node->annotation, son_2->type);
-        else if (son_2->category == Call && strcmp(son_2->type, "undef") != 0)
-            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->type, son_2->children->next->node->annotation);
+    if (strcmp(expression->type, "undef") == 0){
+       if (son_1->annotation != NULL && son_2->annotation != NULL)
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->annotation, son_2->annotation);
+        else if (son_1->annotation != NULL)
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->annotation, son_2->type);
+        else if (son_2->annotation != NULL)
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->type, son_2->annotation);
         else
-            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->type, son_2->type);
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->type, son_2->type);
     }
 }
 
@@ -702,16 +714,24 @@ void operator_conflict_IV(struct node *expression, struct node *son_1, struct no
         default:
             break;
     }
-    if ((strcmp(son_1->type, "undef") != 0 || strcmp(son_2->type, "undef") != 0) && (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0))
-         printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column  , operator, son_1->type, son_2->type);
+    if ((strcmp(son_1->type, "undef") != 0 || strcmp(son_2->type, "undef") != 0) && (strcmp(son_1->type, "undef") == 0 || strcmp(son_1->type, "void") == 0 || strcmp(son_2->type, "undef") == 0 || strcmp(son_2->type, "void") == 0)){
+        if (son_1->annotation != NULL && son_2->annotation != NULL)
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->annotation, son_2->annotation);
+        else if (son_1->annotation != NULL)
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->annotation, son_2->type);
+        else if (son_2->annotation != NULL)
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->type, son_2->annotation);
+        else
+            printf("Line %d, column %d: Operator %s cannot be applied to types %s, %s\n", expression->token_line, expression->token_column, operator, son_1->type, son_2->type);
+    }
 }
 
-void operator_conflict_V(struct node *node){
+void operator_conflict_V(struct node *node, struct node *expr){
     if (strcmp(node->type, "int") != 0 && strcmp(node->type, "char") != 0 && strcmp(node->type, "short") != 0){
         if (node->annotation == NULL)
-            printf("Line %d, column %d: Operator ! cannot be applied to type %s\n", node->token_line, node->token_column, node->type);
+            printf("Line %d, column %d: Operator ! cannot be applied to type %s\n", expr->token_line, expr->token_column, node->type);
         else
-            printf("Line %d, column %d: Operator ! cannot be applied to type %s\n", node->token_line, node->token_column, node->annotation);
+            printf("Line %d, column %d: Operator ! cannot be applied to type %s\n", expr->token_line, expr->token_column, node->annotation);
     }
 }
 
