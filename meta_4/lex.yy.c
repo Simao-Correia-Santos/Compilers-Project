@@ -2307,7 +2307,7 @@ int main(int argc, char const *argv[]) {
         if (syntax_errors == 0){
             check_program(program);
             if (semantic_errors == 0){
-                show_symbol_table();
+                codegen_program(program);
             }
         }
     }

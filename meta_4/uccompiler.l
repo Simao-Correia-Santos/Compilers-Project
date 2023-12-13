@@ -140,7 +140,7 @@ int main(int argc, char const *argv[]) {
         if (syntax_errors == 0){
             check_program(program);
             if (semantic_errors == 0){
-                //GENERATE CODE
+                codegen_program(program);
             }
         }
     }
