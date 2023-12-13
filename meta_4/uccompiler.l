@@ -12,6 +12,7 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
     #include "y.tab.h"
     #include "ast.h"
     #include "semantics.h"
+    #include "codegen.h"
     #define PASS_TOKEN() yylval.lexeme = strdup(yytext);
 
     int yyparse(void);
@@ -20,6 +21,7 @@ scape_sequence '\\([nt\\'\"]|[0-7]?[0-7]?[0-7])'
     int row = 1;
     int column = 1;
     int syntax_errors = 0;
+    int semantic_errors = 0;
     int row_com, column_com, row_char, column_char;
     char buffer[1024];
     extern struct node *program;
@@ -116,14 +118,14 @@ int main(int argc, char const *argv[]) {
         tokens = 1;
         yylex();
     }
-    if (argc > 1 && strcmp(argv[1], "-t") == 0){
+    else if (argc > 1 && strcmp(argv[1], "-t") == 0){
         pass_tokens = 1;
         yyparse();
         if (syntax_errors == 0){
             show_ast_tree(program, 0); 
         }
     }
-    if (argc > 1 && strcmp(argv[1], "-s") == 0){
+    else if (argc > 1 && strcmp(argv[1], "-s") == 0){
         pass_tokens = 1;
         yyparse();
         if (syntax_errors == 0){
@@ -132,9 +134,15 @@ int main(int argc, char const *argv[]) {
             show_ast_tree(program, 0);
         }
     }
-    if (argc == 1){
+    else {
         pass_tokens = 1;
         yyparse();
+        if (syntax_errors == 0){
+            check_program(program);
+            if (semantic_errors == 0){
+                //GENERATE CODE
+            }
+        }
     }
     deallocate_memory(program);    
     return 0;
