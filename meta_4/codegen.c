@@ -13,7 +13,7 @@ void codegen_program(struct node *program){
   struct node* aux;
 
   printf("declare i32 @putchar(i32)\n");
-  printf("declare i32 @getchar()\n");
+  printf("declare i32 @getchar()\n\n\n");
 
   for (int i = 0; (aux = getchild(program, i)) != NULL; i++){
     if (aux->category == FuncDefinition)
@@ -21,7 +21,7 @@ void codegen_program(struct node *program){
     else if (aux->category == FuncDeclaration)
       codegen_func_declaration(aux);
     else if (aux->category == Declaration)
-      codegen_declaration(aux, 0);
+      codegen_declaration(aux, 1);
   }
 }
 
@@ -31,11 +31,11 @@ void codegen_func_definition(struct node *func_definition){
   struct node *identifier_node = getchild(func_definition, 1);
 
   if (typespec_node->category == Int || typespec_node->category == Short || typespec_node->category == Char)
-    printf("define i32 ");
+    printf("\ndefine i32 ");
   else if (typespec_node->category == Double)
-    printf("define double ");
+    printf("\ndefine double ");
   else if (typespec_node->category == Void)
-    printf("define void ");
+    printf("\ndefine void ");
 
   printf("@%s", identifier_node->token);
 
@@ -117,7 +117,7 @@ void codegen_fuction_body(struct node *func_body){
   printf("{\n");
   while((son = getchild(func_body, pos++)) != NULL){
     if (son->category == Declaration)
-      codegen_declaration(son, 1);
+      codegen_declaration(son, 0);
     else
       codegen_statement(son);
   }
@@ -334,11 +334,13 @@ int codegen_identifier(struct node *expression){
 int codegen_plus(struct node *expression){
   struct node *son = getchild(expression, 0);
   int e1 = codegen_expression(son);
+  return temporary++;
 }
 
 int codegen_minus(struct node *expression){
   struct node *son = getchild(expression, 0);
   int e1 = codegen_expression(son);
+  return temporary++;
 }
 
 int codegen_or(struct node *expression){
@@ -346,6 +348,7 @@ int codegen_or(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  return temporary++;
 }
 
 int codegen_and(struct node *expression){
@@ -353,6 +356,7 @@ int codegen_and(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  return temporary++;
 }
 
 int codegen_mod(struct node *expression){
@@ -360,6 +364,8 @@ int codegen_mod(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  printf("%%%d = srem i32 %%%d, %%%d\n", temporary, e1, e2);
+  return temporary++;
 }
 
 int codegen_bitwiseand(struct node *expression){
@@ -367,6 +373,8 @@ int codegen_bitwiseand(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  printf("%%%d = and i32 %%%d, %%%d\n", temporary, e1, e2);
+  return temporary++;
 }
 
 int codegen_bitwiseor(struct node *expression){
@@ -374,6 +382,8 @@ int codegen_bitwiseor(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  printf("%%%d = or i32 %%%d, %%%d\n", temporary, e1, e2);
+  return temporary++;
 }
 
 int codegen_bitwisexor(struct node *expression){
@@ -381,6 +391,8 @@ int codegen_bitwisexor(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  printf("%%%d = xor i32 %%%d, %%%d\n", temporary, e1, e2);
+  return temporary++;
 }
 
 int codegen_add(struct node *expression){
@@ -424,6 +436,8 @@ int codegen_eq(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  printf("%%%d = icmp eq i32 %%%d, %%%d\n", e1, e2);
+  return temporary++;
 }
 
 int codegen_ne(struct node *expression){
@@ -431,6 +445,8 @@ int codegen_ne(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  printf("%%%d = icmp ne i32 %%%d, %%%d\n", e1, e2);
+  return temporary++;
 }
 
 int codegen_lt(struct node *expression){
@@ -438,6 +454,8 @@ int codegen_lt(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  printf("%%%d = icmp lt i32 %%%d, %%%d\n", e1, e2);
+  return temporary++;
 }
 
 int codegen_gt(struct node *expression){
@@ -445,6 +463,8 @@ int codegen_gt(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  printf("%%%d = icmp gt i32 %%%d, %%%d\n", e1, e2);
+  return temporary++;
 }
 
 int codegen_le(struct node *expression){
@@ -452,6 +472,8 @@ int codegen_le(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  printf("%%%d = icmp le i32 %%%d, %%%d\n", e1, e2);
+  return temporary++;
 }
 
 int codegen_ge(struct node *expression){
@@ -459,11 +481,14 @@ int codegen_ge(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  printf("%%%d = icmp ge i32 %%%d, %%%d\n", e1, e2);
+  return temporary++;
 }
 
 int codegen_not(struct node *expression){
   struct node *son = getchild(expression, 0);
   int e1 = codegen_expression(son);
+  return temporary++;
 }
 
 int codegen_store(struct node *expression){
@@ -471,6 +496,7 @@ int codegen_store(struct node *expression){
   struct node *son_2 = getchild(expression, 1);
   int e1 = codegen_expression(son);
   int e2 = codegen_expression(son_2);
+  return temporary++;
 }
 
 int codegen_call(struct node *expression){
@@ -483,4 +509,5 @@ int codegen_call(struct node *expression){
   while ((son_2 = getchild(expression, pos++)) != NULL){
     e2 = codegen_expression(son_2);
   }
+  return temporary++;
 }
