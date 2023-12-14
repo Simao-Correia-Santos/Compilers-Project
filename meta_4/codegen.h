@@ -11,6 +11,6 @@ void codegen_parameter_declarator(struct node *no);
 void codegen_fuction_body(struct node *no);
 void codegen_statement(struct node *statement);
 void codegen_expr_comma(struct node *expr_comma_node);
-void codegen_expression(struct node *expression);
+int codegen_expression(struct node *expression);
 
 #endif

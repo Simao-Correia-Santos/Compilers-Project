@@ -1,6 +1,5 @@
-int work(int a, double b) {
-  int i = 0;
-  return 1;
+void a(){
+  int b = 1;
+  double c = 2.0;
+  char d = 'a';
 }
-
-double variavel;
