@@ -7,7 +7,7 @@
 
 int temporary;
 
-extern struct symbol_list *symbol_table;
+extern struct symbols_list *global_symbol_table;
 
 void codegen_program(struct node *program){
   struct node* aux;
@@ -21,7 +21,7 @@ void codegen_program(struct node *program){
     else if (aux->category == FuncDeclaration)
       codegen_func_declaration(aux);
     else if (aux->category == Declaration)
-      codegen_declaration(aux, 1);
+      codegen_declaration(aux, 1, NULL);
   }
 }
 
@@ -29,6 +29,8 @@ void codegen_func_definition(struct node *func_definition){
   temporary = 1;
   struct node *typespec_node = getchild(func_definition, 0);
   struct node *identifier_node = getchild(func_definition, 1);
+
+  struct symbols_list *symbol = search_function_symbol(global_symbol_table, identifier_node->token);
 
   if (typespec_node->category == Int || typespec_node->category == Short || typespec_node->category == Char)
     printf("\ndefine i32 ");
@@ -39,8 +41,8 @@ void codegen_func_definition(struct node *func_definition){
 
   printf("@%s", identifier_node->token);
 
-  codegen_parameter_declarator(getchild(func_definition, 2));
-  codegen_fuction_body(getchild(func_definition, 3)); 
+  codegen_parameter_declarator(getchild(func_definition, 2), symbol->function);
+  codegen_fuction_body(getchild(func_definition, 3), symbol->function); 
 }
 
 void codegen_func_declaration(struct node *func_declaration){
@@ -56,11 +58,11 @@ void codegen_func_declaration(struct node *func_declaration){
   
   printf("@%s", identifier_node->token);
   
-  codegen_parameter_declarator(getchild(func_declaration, 2));
+  codegen_parameter_declarator(getchild(func_declaration, 2), NULL);
   printf("\n");
 }
 
-void codegen_declaration(struct node *declaration, int is_global){
+void codegen_declaration(struct node *declaration, int is_global, struct function *func){
   struct node *typespec_node = getchild(declaration, 0);
   struct node *identifier_node = getchild(declaration, 1);
   struct node *expr_comma_node = getchild(declaration, 2);
@@ -74,16 +76,32 @@ void codegen_declaration(struct node *declaration, int is_global){
       printf("global double ");
 
     if (expr_comma_node != NULL)
-      codegen_expr_comma(expr_comma_node);
+      printf("%s\n", expr_comma_node->token);
     else
       printf("0\n");
   }
   else {
+    struct params_list *aux = search_local_variable(func, identifier_node->token);
+    aux->temporary = temporary;
 
+    if (typespec_node->category == Int || typespec_node->category == Short || typespec_node->category == Char){
+      printf("%%%d = alloca i32\n", temporary);
+      if (expr_comma_node != NULL)
+        printf("store i32 %s, i32* %%%d\n", expr_comma_node->token, temporary);
+    }
+    else if (typespec_node->category == Double){
+      printf("%%%d = alloca double\n", temporary);
+      if (expr_comma_node != NULL)
+        printf("store double %s, double* %%%d\n", expr_comma_node->token, temporary);
+    }
+
+
+
+    temporary++;
   }
 }
 
-void codegen_parameter_declarator(struct node *parameter_list){
+void codegen_parameter_declarator(struct node *parameter_list, struct function *func){
   struct node *param_decl, *typespec_node, *identifier_node;
   int pos = 0;
   
@@ -104,27 +122,37 @@ void codegen_parameter_declarator(struct node *parameter_list){
       printf("%%%s", identifier_node->token);
     }
 
+    if (func != NULL){
+      if (typespec_node->category == Int || typespec_node->category == Short || typespec_node->category == Char)
+        printf("%%%d = alloca i32\n", temporary);
+      else if (typespec_node->category == Double)
+        printf("%%%d = alloca double\n", temporary);
+
+      search_parameters_list(func, identifier_node->token)->temporary = temporary;
+      temporary++;
+    }
+
     if(getchild(parameter_list, ++pos) != NULL)
       printf(", ");
   }
   printf(")");
 }
 
-void codegen_fuction_body(struct node *func_body){
+void codegen_fuction_body(struct node *func_body, struct function *func){
   int pos = 0;
   struct node *son;
 
   printf("{\n");
   while((son = getchild(func_body, pos++)) != NULL){
     if (son->category == Declaration)
-      codegen_declaration(son, 0);
+      codegen_declaration(son, 0, func);
     else
-      codegen_statement(son);
+      codegen_statement(son, func);
   }
   printf("}");
 }
 
-void codegen_statement(struct node *statement){
+void codegen_statement(struct node *statement, struct function *func){
   int statListPos = 0;
   struct node *sonStatList;
   struct node *body_if;
@@ -135,172 +163,107 @@ void codegen_statement(struct node *statement){
   switch (statement->category){
     case StatList:
       while((sonStatList = getchild(statement, statListPos++)) != NULL){
-        codegen_statement(sonStatList);
+        codegen_statement(sonStatList, func);
       }
       break;
     
     case If:
       body_if = getchild(statement, 0);
-      codegen_expr_comma(body_if);
+      codegen_expr_comma(body_if, func);
 
       body_if = getchild(statement, 1);
       if (body_if != NULL){
         if (body_if->category == StatList || body_if->category == If || body_if->category == While || body_if->category == Return)
-          codegen_statement(body_if);
+          codegen_statement(body_if, func);
         else
-          codegen_expr_comma(body_if);
+          codegen_expr_comma(body_if, func);
       }
 
       body_else = getchild(statement, 2);
       if (body_else != NULL){
         if (body_else->category == StatList || body_else->category == If || body_else->category == While || body_else->category == Return)
-            codegen_statement(body_else);
+            codegen_statement(body_else, func);
         else
-          codegen_expr_comma(body_else);
+          codegen_expr_comma(body_else, func);
       }
       break;
     
     case While:
       body_while = getchild(statement, 0);
-      codegen_expr_comma(body_while);
+      codegen_expr_comma(body_while, func);
 
       body_while = getchild(statement, 1);
       if(body_while != NULL){
         if (body_while->category == StatList || body_while->category == If || body_while->category == While || body_while->category == Return)
-          codegen_statement(body_while);
+          codegen_statement(body_while, func);
         else
-          codegen_expr_comma(body_while);        
+          codegen_expr_comma(body_while, func);        
       }
       break;
     
     case Return:
       expr_comma_node = getchild(statement, 0);
       if(expr_comma_node->category != Null)
-        codegen_expr_comma(expr_comma_node);
+        codegen_expr_comma(expr_comma_node, func);
       break;
     
     default:
-      codegen_expr_comma(statement);
+      codegen_expr_comma(statement, func);
       break;
   }
 }
 
-void codegen_expr_comma(struct node *expr_comma_node){
+void codegen_expr_comma(struct node *expr_comma_node, struct function *func){
   struct node *son_1;
   struct node *son_2;
 
   if (expr_comma_node->category != Comma)
-    codegen_expression(expr_comma_node);
+    codegen_expression(expr_comma_node, func);
   else {
     son_1 = getchild(expr_comma_node, 0);
     son_2 = getchild(expr_comma_node, 1);
-    codegen_expr_comma(son_1);
-    codegen_expr_comma(son_2);
+    codegen_expr_comma(son_1, func);
+    codegen_expr_comma(son_2, func);
   }
 }
 
-int codegen_expression(struct node *expression){
+int codegen_expression(struct node *expression, struct function *func){
   int tmp = -1;
+  struct params_list *aux;
 
   switch(expression->category){
     case Decimal:
-      tmp = codegen_decimal(expression);
+      printf("double %s", expression->token);
+      tmp = temporary;
       break;
     
     case Natural:
-      tmp = codegen_natural(expression);
+      printf("i32 %s", expression->token);
+      tmp = temporary;
       break;
 
     case Chrlit:
-      tmp = codegen_chrlit(expression);
+      printf("i32 %s", expression->token);
+      tmp = temporary;
       break;
     
     case Identifier:
-      tmp = codegen_identifier(expression);
-      break;
-    
-    case Plus:
-      tmp = codegen_plus(expression);
-      break;
-
-    case Minus:
-      tmp = codegen_minus(expression);
-      break;
-    
-    case Or:
-      tmp = codegen_or(expression);
-      break;
-
-    case And:
-      tmp = codegen_and(expression);
-      break;
-
-    case Mod:
-      tmp = codegen_mod(expression);
-      break;
-
-    case BitWiseAnd:
-      tmp = codegen_bitwiseand(expression);
-      break;
-
-    case BitWiseOr:
-      tmp = codegen_bitwiseor(expression);
-      break;
-
-    case BitWiseXor:
-      tmp = codegen_bitwisexor(expression);
-      break;
-    
-    case Add:
-      tmp = codegen_add(expression);
-      break;
-    
-    case Sub:
-      tmp = codegen_sub(expression);
-      break;
-    
-    case Mul:
-      tmp = codegen_mul(expression);
-      break;
-
-    case Div:
-      tmp = codegen_div(expression);
-      break;
-    
-    case Eq:
-      tmp = codegen_eq(expression);
-      break;
-
-    case Ne:
-      tmp = codegen_ne(expression);
-      break;
-
-    case Lt:
-      tmp = codegen_lt(expression);
-      break;
-
-    case Gt:
-      tmp = codegen_gt(expression);
-      break;
-
-    case Le:
-      tmp = codegen_le(expression);
-      break;
-
-    case Ge:
-      tmp = codegen_ge(expression);
-      break;
-    
-    case Not:
-      tmp = codegen_not(expression);
+      if ((aux = search_local_variable(func, expression->token)) != NULL){
+        printf("i32 %%%d", aux->temporary);
+        tmp = temporary;
+      }
+      else if ((aux = search_parameters_list(func, expression->token)) != NULL){
+        printf("i32 %%%d", aux->temporary);
+        tmp = temporary;
+      }
+      else if ((aux = search_variable_symbol(global_symbol_table, expression->token)) != NULL){
+        printf("\n%%%d = load i32\n", temporary);
+        temporary++;
+      }
       break;
     
     case Store:
-      tmp = codegen_store(expression);
-      break;
-    
-    case Call:
-      tmp = codegen_call(expression);
+      tmp = codegen_store(expression, func);
       break;
     
     default:
@@ -310,204 +273,14 @@ int codegen_expression(struct node *expression){
 }
 
 
-
-int codegen_decimal(struct node *expression){
-  printf("%%%d = fadd double %s, 0.0\n", temporary, expression->token);
-  return temporary++;
-}
-
-int codegen_natural(struct node *expression){
-  printf("%%%d = add i32 %s, 0\n", temporary, expression->token);
-  return temporary++;
-}
-
-int codegen_chrlit(struct node *expression){
-  printf("%%%d = add i32 %s, 0\n", temporary, expression->token);
-  return temporary++;
-}
-
-int codegen_identifier(struct node *expression){
-  printf("%%%d = add i32 %%%s, 0\n", temporary, expression->token);
-  return temporary++;
-}
-
-int codegen_plus(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  int e1 = codegen_expression(son);
-  return temporary++;
-}
-
-int codegen_minus(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  int e1 = codegen_expression(son);
-  return temporary++;
-}
-
-int codegen_or(struct node *expression){
+int codegen_store(struct node *expression, struct function *func){
   struct node *son = getchild(expression, 0);
   struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
+  printf("store ");
+  codegen_expression(son, func);
+  printf(", ");
+  codegen_expression(son_2, func);
+  printf("\n");
   return temporary++;
 }
 
-int codegen_and(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  return temporary++;
-}
-
-int codegen_mod(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = srem i32 %%%d, %%%d\n", temporary, e1, e2);
-  return temporary++;
-}
-
-int codegen_bitwiseand(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = and i32 %%%d, %%%d\n", temporary, e1, e2);
-  return temporary++;
-}
-
-int codegen_bitwiseor(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = or i32 %%%d, %%%d\n", temporary, e1, e2);
-  return temporary++;
-}
-
-int codegen_bitwisexor(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = xor i32 %%%d, %%%d\n", temporary, e1, e2);
-  return temporary++;
-}
-
-int codegen_add(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = add i32 %%%d, %%%d\n", temporary, e1, e2);
-  return temporary++;
-}
-
-int codegen_sub(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = sub i32 %%%d, %%%d\n", temporary, e1, e2);
-  return temporary++;
-}
-
-int codegen_mul(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = mul i32 %%%d, %%%d\n", temporary, e1, e2);
-  return temporary++;
-}
-
-int codegen_div(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = sdiv i32 %%%d, %%%d\n", temporary, e1, e2);
-  return temporary++;
-}
-
-int codegen_eq(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = icmp eq i32 %%%d, %%%d\n", e1, e2);
-  return temporary++;
-}
-
-int codegen_ne(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = icmp ne i32 %%%d, %%%d\n", e1, e2);
-  return temporary++;
-}
-
-int codegen_lt(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = icmp lt i32 %%%d, %%%d\n", e1, e2);
-  return temporary++;
-}
-
-int codegen_gt(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = icmp gt i32 %%%d, %%%d\n", e1, e2);
-  return temporary++;
-}
-
-int codegen_le(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = icmp le i32 %%%d, %%%d\n", e1, e2);
-  return temporary++;
-}
-
-int codegen_ge(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  printf("%%%d = icmp ge i32 %%%d, %%%d\n", e1, e2);
-  return temporary++;
-}
-
-int codegen_not(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  int e1 = codegen_expression(son);
-  return temporary++;
-}
-
-int codegen_store(struct node *expression){
-  struct node *son = getchild(expression, 0);
-  struct node *son_2 = getchild(expression, 1);
-  int e1 = codegen_expression(son);
-  int e2 = codegen_expression(son_2);
-  return temporary++;
-}
-
-int codegen_call(struct node *expression){
-  int e2;
-  int pos = 1;
-  struct node *son_2;
-
-  struct node *son = getchild(expression, 0);
-  int e1 = codegen_expression(son);
-  while ((son_2 = getchild(expression, pos++)) != NULL){
-    e2 = codegen_expression(son_2);
-  }
-  return temporary++;
-}

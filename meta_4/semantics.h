@@ -3,6 +3,7 @@
 #include "ast.h"
 
 struct params_list {
+	int temporary;
 	int printable;
 	char *name;
 	char *type;
