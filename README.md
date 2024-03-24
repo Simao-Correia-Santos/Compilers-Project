@@ -1,4 +1,4 @@
-Projeto de compiladores 2023/2024
+Academic Project as part of the course Compilers
 
 Linguagem: UC (subconjunto de C)
 
