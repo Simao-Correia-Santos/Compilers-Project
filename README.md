@@ -1,6 +1,8 @@
-Academic project developed as part of the Operating Systems course in the Computer Engineering program (2023-2024)
+# Compilers - Project
+Academic project developed as part of the Compilers course in the Computer Engineering program (2023-2024)
 
-Linguagem: UC (subconjunto de C)
+## Goal
+Develop an UC compiler (Sub-language of C)
 
 Meta_1: 190/190
 
