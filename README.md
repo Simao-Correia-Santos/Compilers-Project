@@ -1,4 +1,4 @@
-Academic Project as part of Compilers course.
+Academic project developed as part of the Operating Systems course in the Computer Engineering program (2023-2024)
 
 Linguagem: UC (subconjunto de C)
 
