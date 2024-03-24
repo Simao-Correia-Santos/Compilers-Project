@@ -1,4 +1,4 @@
-Academic Project as part of the course Compilers
+Academic Project as part of Compilers course.
 
 Linguagem: UC (subconjunto de C)
 
